@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # 1. Cơ sở dữ liệu SQL Server Local
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: job-sqlserver-db
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: YourPassword123! # Yêu cầu mật khẩu mạnh (chữ hoa, chữ thường, số, ký tự đặc biệt)
+      MSSQL_PID: "Developer"
+    ports:
+      - "${DB_PORT}:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  # 2. Backend Gateway (NestJS)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: job-backend-api
+    restart: always
+    ports:
+      - "${BACKEND_PORT}:4000"
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DB_TYPE: mssql
+      DB_HOST: db
+      DB_PORT: 1433
+      DB_USER: ${DB_USER:-sa}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      AI_SERVICE_URL: http://ai-service:8000
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - db
+
+  # 3. AI & Data Pipeline (FastAPI)
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: job-ai-pipeline
+    restart: always
+    ports:
+      - "${AI_SERVICE_PORT}:8000"
+    environment:
+      PORT: 8000
+      DB_HOST: db
+      DB_PORT: 1433
+      DB_USER: ${DB_USER:-sa}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+    volumes:
+      - ./ai-service:/app
+    depends_on:
+      - db
+
+  # 4. Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: job-frontend-web
+    restart: always
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_PORT}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+
+volumes:
+  mssql_data:
