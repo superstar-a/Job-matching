@@ -1,0 +1,9 @@
+{
+  "overall_score": 82.5,
+  "matched_skills": ["Python", "FastAPI", "SQL"],
+  "missing_required_skills": ["Docker"],
+  "nice_to_have_skills": ["AWS", "NLP"],
+  "experience_gap": "Candidate meets the minimum 2 years of experience.",
+  "salary_gap": null,
+  "recommendation_reason": "The CV is a strong backend Python fit, but should show Docker experience more clearly."
+}

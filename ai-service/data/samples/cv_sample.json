@@ -1,0 +1,40 @@
+{
+  "candidate_name": "Nguyen Van A",
+  "title": "Python Backend Developer",
+  "summary": "Backend developer with experience in FastAPI and SQL.",
+  "email": null,
+  "phone": null,
+  "location": "Ho Chi Minh City",
+  "skills": ["Python", "FastAPI", "SQL", "Git"],
+  "languages": ["Vietnamese", "English"],
+  "total_years_experience": 2,
+  "experiences": [
+    {
+      "title": "Backend Developer",
+      "company": "Example Tech",
+      "start_date": "2024-01-01",
+      "end_date": null,
+      "description": "Built REST APIs and data processing scripts with FastAPI.",
+      "skills": ["Python", "FastAPI", "SQL"]
+    }
+  ],
+  "education": [
+    {
+      "school": "Example University",
+      "degree": "Bachelor",
+      "major": "Computer Science",
+      "start_year": 2020,
+      "end_year": 2024
+    }
+  ],
+  "projects": [
+    {
+      "name": "Job Matching AI",
+      "description": "Matched CVs to job descriptions using NLP features.",
+      "skills": ["Python", "NLP", "Scikit-learn"],
+      "url": null
+    }
+  ],
+  "certificates": ["AWS Cloud Practitioner"],
+  "raw_text": null
+}
