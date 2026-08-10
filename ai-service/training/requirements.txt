@@ -1,0 +1,15 @@
+# Thư viện cho việc Fine-tuning mô hình NER
+torch
+transformers
+datasets
+seqeval
+evaluate
+accelerate
+
+# Thư viện cho tiền xử lý và data pipeline
+pandas
+scikit-learn
+spacy
+
+# (Tùy chọn) Giao diện để gán nhãn dữ liệu local
+label-studio

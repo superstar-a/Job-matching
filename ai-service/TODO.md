@@ -20,20 +20,20 @@ Lộ trình ban đầu ổn để khởi động MVP, nhưng cần bổ sung cá
 
 ## 0. Chốt kiến trúc & contract với team
 
-- [ ] Chốt hệ CSDL thực tế: tài liệu ban đầu nói MySQL/RDS, nhưng repo hiện dùng MS SQL Server trong `docker-compose.yml`.
+- [x] Chốt hệ CSDL thực tế: dự án dùng Microsoft SQL Server. Local/dev chạy container `mcr.microsoft.com/mssql/server:2022-latest` trong `docker-compose.yml`, Backend dùng `DB_TYPE=mssql`, còn `.env.example` cấu hình `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
 - [ ] Chốt luồng dữ liệu chính: `Crawler/Scraper -> Normalize JD -> Store -> Extract Entities -> Match CV-JD -> Recommend`.
 - [ ] Chốt Backend gọi FastAPI qua URL nội bộ `AI_SERVICE_URL=http://ai-service:8000`.
 - [ ] Định nghĩa format lỗi chung cho AI API: `code`, `message`, `details`, `request_id`.
 - [ ] Định nghĩa Pydantic schema cho toàn bộ request/response trước khi triển khai endpoint.
 - [ ] Thống nhất dữ liệu file CV: Backend gửi file trực tiếp, gửi S3 key, hay gửi extracted text.
-- [ ] Thống nhất nơi lưu dữ liệu: AI-service chỉ xử lý và trả JSON, Backend chịu trách nhiệm ghi DB, trừ khi team quyết định khác.
+- [ ] Thống nhất nơi lưu dữ liệu: AI-service chỉ xử lý và trả JSON, Backend chịu trách nhiệm ghi SQL Server, trừ khi team quyết định khác.
 - [x] Tạo thư mục code chuẩn cho `ai-service`: `app/api`, `app/schemas`, `app/services`, `app/pipelines`, `app/utils`, `tests`, `data/samples`.
 
 Definition of done:
 
 - Có file schema/API contract để Backend và Frontend bám theo.
 - Swagger của FastAPI có example request/response rõ ràng.
-- Không còn lệch tài liệu giữa MySQL và MS SQL Server.
+- Tài liệu, biến môi trường và API contract thống nhất rằng CSDL của dự án là Microsoft SQL Server.
 
 ## 1. Môi trường & nền tảng
 
@@ -94,18 +94,28 @@ Definition of done:
 - [ ] Tích hợp đọc DOCX bằng `python-docx`.
 - [ ] Tách text theo section CV: summary, skills, experience, education, projects, certificates.
 - [ ] Detect ngôn ngữ CV/JD: tiếng Việt, tiếng Anh, hoặc mixed.
-- [ ] Với text tiếng Anh: dùng spaCy để tokenize, sentence split, NER cơ bản.
-- [ ] Với text tiếng Việt: ưu tiên taxonomy + regex + rule-based parser ở MVP; cân nhắc thêm `underthesea`, VnCoreNLP hoặc model transformer ở P1.
-- [ ] Không phụ thuộc hoàn toàn vào Amazon Comprehend cho tiếng Việt; dùng Comprehend như thành phần tùy chọn khi ngôn ngữ và feature phù hợp.
-- [ ] Extract entity tối thiểu:
-  - skills
-  - years of experience
-  - job titles
-  - education
-  - certificates
-  - location
-  - salary expectation hoặc salary range
-  - languages
+- [ ] Thiết lập hệ thống gán nhãn dữ liệu (Data Labeling) với Label Studio cho CV/JD tiếng Việt & Anh.
+- [ ] Gán nhãn thủ công (Annotate) ít nhất 100-500 mẫu CV/JD để tạo tập dữ liệu huấn luyện.
+- [ ] Tự huấn luyện (Fine-tune) mô hình ngôn ngữ (ví dụ: PhoBERT hoặc spaCy custom NER pipeline) thay vì dùng rule-based.
+- [ ] Extract entity tối thiểu bằng mô hình tự train:
+  - skills: hard skills, soft skills, tools, frameworks, databases, cloud, methodology
+  - skill evidence: kỹ năng xuất hiện ở section nào, dùng trong project/job nào, số năm hoặc mức độ thành thạo nếu suy ra được
+  - years of experience: tổng số năm, số năm liên quan tới role, số năm theo từng kỹ năng/domain quan trọng
+  - job titles và target roles
+  - seniority/level: intern, fresher, junior, middle, senior, lead, manager
+  - work history: company, industry/domain, role, start/end date, duration, responsibility
+  - achievements/impact: metric, kết quả định lượng, giải thưởng, thành tích nổi bật
+  - projects/products: tên dự án, vai trò, tech stack, quy mô, kết quả, link nếu có
+  - education: degree, major, school, graduation year, GPA nếu có
+  - certificates/licenses
+  - location, relocation preference, remote/hybrid/on-site preference, timezone nếu có
+  - salary expectation hoặc salary range, currency, gross/net nếu có
+  - languages: ngôn ngữ, level, chứng chỉ liên quan nếu có
+  - availability: thời điểm có thể bắt đầu, notice period, employment type mong muốn
+  - portfolio/profile links: GitHub, LinkedIn, personal website, portfolio
+  - keywords/domain expertise: fintech, e-commerce, healthcare, edtech, outsourcing, product company, startup
+- [ ] Với JD, tách rõ entity theo nhóm `required`, `nice_to_have`, `responsibilities`, `benefits`, `company_domain`, `work_mode`, `salary_range`, `level`.
+- [ ] Chuẩn hóa entity để matching không chỉ đếm keyword: `normalized`, `aliases`, `confidence`, `source_span`, `section`, `evidence`, `recency`.
 - [ ] Gắn `confidence` và `source_span` cho entity quan trọng nếu làm được.
 - [ ] Mask hoặc bỏ qua PII không cần thiết: email, phone, address chi tiết.
 - [ ] Tạo endpoint `POST /api/parse-cv`.
@@ -125,7 +135,8 @@ Definition of done:
   - title/category similarity: 15%
   - location/work mode: 10%
   - salary fit: 10%
-- [ ] Tính skill match theo taxonomy và alias, không so sánh string thô đơn giản.
+- [ ] Tính skill match theo taxonomy, alias, evidence, recency và mức độ bắt buộc/tùy chọn trong JD; không so sánh string thô đơn giản.
+- [ ] Tính thêm các tín hiệu matching từ entity đã extract: seniority, domain, project evidence, education/certificates, language level, work mode, availability, salary/location fit.
 - [ ] Tính text similarity bằng TF-IDF + cosine similarity cho JD/CV cleaned text.
 - [ ] Trả về `overall_score` từ 0-100.
 - [ ] Trả về giải thích:
@@ -180,6 +191,9 @@ Definition of done:
 
 ## 8. Tích hợp Backend, Storage & AWS
 
+- [x] Xác nhận CSDL dùng chung là Microsoft SQL Server trong Docker Compose service `db`.
+- [ ] Nếu AI-service cần truy cập DB trực tiếp, thêm driver/cấu hình kết nối SQL Server phù hợp, ví dụ `pyodbc` hoặc SQLAlchemy dialect cho MSSQL, và dùng các biến `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
+- [ ] Ưu tiên để Backend Gateway là service ghi DB chính; AI-service chỉ đọc/ghi SQL Server khi có contract rõ về ownership dữ liệu.
 - [ ] Chốt Backend upload CV lên S3 trước hay AI-service nhận file trực tiếp.
 - [ ] Nếu AI-service đọc S3: dùng boto3 với IAM quyền tối thiểu chỉ đọc object cần thiết.
 - [ ] Không commit AWS key vào repo; chỉ dùng `.env` local và secret manager/CI secret khi deploy.
@@ -219,17 +233,20 @@ Definition of done:
 
 ### Milestone 1 - Sau setup: Contract + sample data
 
-- [ ] Chốt DB đang dùng và API contract.
+- [x] Chốt DB đang dùng là Microsoft SQL Server.
+- [ ] Chốt API contract.
 - [x] Tạo sample JD/CV và expected JSON.
 - [x] Tạo cấu trúc thư mục `app/` và `tests/`.
 - [x] Viết schema Pydantic cho JD, CV, entity, match result.
 
-### Milestone 2 - Data extraction MVP
+### Milestone 2 - Data extraction & Custom AI MVP
 
 - [ ] Scrape hoặc ingest JD mẫu.
 - [ ] Parse PDF/DOCX CV.
-- [ ] Extract skills/experience/location/salary bằng rule-based + taxonomy.
-- [ ] Test extraction trên sample data.
+- [ ] Thiết lập Data Pipeline: Cài đặt công cụ gán nhãn, chuẩn bị tập dữ liệu train/val/test.
+- [ ] Huấn luyện Custom NER Model (PhoBERT/spaCy) để nhận diện thực thể tiếng Việt.
+- [ ] Tích hợp mô hình đã train vào FastAPI endpoint để extract skills/experience/location/salary.
+- [ ] Đánh giá độ chính xác (Precision/Recall/F1) của mô hình trên tập Test.
 
 ### Milestone 3 - Matching MVP
 
@@ -247,7 +264,7 @@ Definition of done:
 
 ## Ghi chú kỹ thuật quan trọng
 
-- Amazon Comprehend hữu ích cho một số NLP task, nhưng không nên là lựa chọn duy nhất cho JD/CV tiếng Việt. MVP nên có taxonomy/rule-based extractor riêng để kiểm soát chất lượng.
+- MVP hiện tại ưu tiên tự huấn luyện (Train) mô hình AI chuyên biệt (Custom AI Model) cho tác vụ NER. Quá trình này đòi hỏi đầu tư thời gian vào việc gán nhãn dữ liệu (Data Annotation) chất lượng cao và tài nguyên GPU để Fine-tuning. Lựa chọn khuyến nghị là Fine-tune các mô hình tiếng Việt như PhoBERT.
 - Selenium dùng được, nhưng nếu phần scraping JS phức tạp và team có thời gian, có thể cân nhắc Playwright ở P1 vì workflow browser automation/test thường gọn hơn.
 - Matching giai đoạn đầu không cần mô hình ML phức tạp. Một baseline có trọng số, có giải thích tốt, có evaluation rõ thường đáng giá hơn một mô hình khó kiểm chứng.
 - Với dữ liệu CV, privacy quan trọng ngang với độ chính xác. Hạn chế log raw text và không gửi PII sang dịch vụ ngoài khi chưa có chính sách rõ.
