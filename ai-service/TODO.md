@@ -50,22 +50,23 @@ Definition of done:
 
 ## 2. Nguồn dữ liệu & scraping JD
 
-- [ ] Lập danh sách nguồn dữ liệu P0/P1/P2: TopCV, ITviec, VietnamWorks, company career pages, dữ liệu nhập tay.
-- [ ] Kiểm tra điều kiện sử dụng, `robots.txt`, rate limit và policy của từng nguồn trước khi scraping.
-- [ ] Với LinkedIn, để P2 hoặc dùng nguồn hợp lệ/API/dữ liệu người dùng cung cấp, không đặt làm nguồn scraping MVP.
-- [ ] Xây dựng crawler tĩnh bằng BeautifulSoup cho website có HTML render sẵn.
+- [x] Lập danh sách nguồn dữ liệu P0/P1/P2: TopCV, ITviec, VietnamWorks, company career pages, dữ liệu nhập tay.
+- [x] Kiểm tra điều kiện sử dụng, `robots.txt`, rate limit và policy của từng nguồn trước khi scraping.
+- [x] Với LinkedIn, để P2 hoặc dùng nguồn hợp lệ/API/dữ liệu người dùng cung cấp, không đặt làm nguồn scraping MVP.
+- [x] Xây dựng crawler tĩnh bằng BeautifulSoup cho website có HTML render sẵn.
 - [ ] Xây dựng crawler động bằng Selenium cho website cần render JavaScript.
-- [ ] Thêm cơ chế `User-Agent`, timeout, retry, backoff và crawl delay.
-- [ ] Viết hàm làm sạch HTML: loại script/style/nav/footer, chuẩn hóa whitespace, decode HTML entities.
-- [ ] Chuẩn hóa một JD về schema chung:
+- [x] Thêm cơ chế `User-Agent`, timeout, retry, backoff và crawl delay.
+- [x] Viết hàm làm sạch HTML: loại script/style/nav/footer, chuẩn hóa whitespace, decode HTML entities.
+- [x] Chuẩn hóa một JD về schema chung:
   - `source`, `source_url`, `external_id`
   - `title`, `company_name`, `location`, `salary_min`, `salary_max`, `currency`
   - `job_type`, `level`, `posted_at`, `expired_at`
   - `description_text`, `requirements_text`, `benefits_text`
   - `raw_html`, `crawl_status`, `crawled_at`
-- [ ] Thêm logic chống trùng job theo `source_url`, `external_id`, hoặc hash của title/company/location.
-- [ ] Tạo script chạy batch local với input là danh sách URL.
-- [ ] Đóng gói thành endpoint nội bộ `POST /api/scrape-jd`.
+- [x] Thêm logic chống trùng job theo `source_url`, `external_id`, hoặc hash của title/company/location.
+- [x] Tạo script chạy batch local với input là danh sách URL.
+- [x] Đóng gói thành endpoint nội bộ `POST /api/scrape-jd`.
+- [x] Thêm test tự động cho HTML cleaner, crawler tĩnh, LinkedIn policy, dedup, endpoint và batch output policy.
 
 Definition of done:
 
@@ -75,13 +76,13 @@ Definition of done:
 
 ## 3. Data cleaning, taxonomy & dataset
 
-- [ ] Tạo bộ dữ liệu mẫu trong `ai-service/data/samples`: JD text, CV PDF/DOCX, expected JSON.
-- [ ] Xây dựng skill taxonomy ban đầu cho IT: language, framework, database, cloud, tool, soft skill.
-- [ ] Tạo alias mapping: `js -> JavaScript`, `ts -> TypeScript`, `reactjs -> React`, `aws -> Amazon Web Services`.
-- [ ] Chuẩn hóa salary, location, level, job type và số năm kinh nghiệm.
-- [ ] Thêm cờ chất lượng dữ liệu: `missing_salary`, `missing_company`, `short_description`, `parse_confidence`.
-- [ ] Tách dữ liệu theo lớp: raw, cleaned, normalized.
-- [ ] Viết test cho các case dữ liệu lỗi: thiếu lương, nhiều địa điểm, mô tả quá ngắn, text lẫn HTML.
+- [x] Tạo bộ dữ liệu mẫu trong `ai-service/data/samples`: JD text, CV PDF/DOCX, expected JSON.
+- [x] Xây dựng skill taxonomy ban đầu cho IT: language, framework, database, cloud, tool, soft skill.
+- [x] Tạo alias mapping: `js -> JavaScript`, `ts -> TypeScript`, `reactjs -> React`, `aws -> Amazon Web Services`.
+- [x] Chuẩn hóa salary, location, level, job type và số năm kinh nghiệm.
+- [x] Thêm cờ chất lượng dữ liệu: `missing_salary`, `missing_company`, `short_description`, `parse_confidence`.
+- [x] Tách dữ liệu theo lớp: raw, cleaned, normalized.
+- [x] Viết test cho các case dữ liệu lỗi: thiếu lương, nhiều địa điểm, mô tả quá ngắn, text lẫn HTML.
 
 Definition of done:
 
@@ -180,7 +181,7 @@ Definition of done:
 ## 7. FastAPI endpoints cần có cho MVP
 
 - [x] `GET /health`: kiểm tra service sống.
-- [ ] `POST /api/scrape-jd`: nhận URL, trả JD normalized.
+- [x] `POST /api/scrape-jd`: nhận URL, trả JD normalized.
 - [ ] `POST /api/parse-cv`: nhận file hoặc text/S3 key, trả CV structured JSON.
 - [ ] `POST /api/extract-entities`: nhận text, trả entity list.
 - [ ] `POST /api/match-cv-jd`: nhận CV structured + JD structured, trả score và explanation.

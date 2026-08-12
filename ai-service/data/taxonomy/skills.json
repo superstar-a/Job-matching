@@ -1,0 +1,84 @@
+{
+  "version": "2026-08-12",
+  "categories": [
+    "language",
+    "framework",
+    "database",
+    "cloud",
+    "tool",
+    "soft_skill"
+  ],
+  "skills": [
+    {
+      "name": "Python",
+      "category": "language",
+      "aliases": ["python", "py"]
+    },
+    {
+      "name": "JavaScript",
+      "category": "language",
+      "aliases": ["javascript", "js", "ecmascript"]
+    },
+    {
+      "name": "TypeScript",
+      "category": "language",
+      "aliases": ["typescript", "ts"]
+    },
+    {
+      "name": "SQL",
+      "category": "language",
+      "aliases": ["sql", "structured query language"]
+    },
+    {
+      "name": "FastAPI",
+      "category": "framework",
+      "aliases": ["fastapi", "fast api"]
+    },
+    {
+      "name": "React",
+      "category": "framework",
+      "aliases": ["react", "reactjs", "react.js"]
+    },
+    {
+      "name": "Node.js",
+      "category": "framework",
+      "aliases": ["node", "nodejs", "node.js"]
+    },
+    {
+      "name": "PostgreSQL",
+      "category": "database",
+      "aliases": ["postgres", "postgresql"]
+    },
+    {
+      "name": "Microsoft SQL Server",
+      "category": "database",
+      "aliases": ["mssql", "sql server", "microsoft sql server"]
+    },
+    {
+      "name": "Amazon Web Services",
+      "category": "cloud",
+      "aliases": ["aws", "amazon web services"]
+    },
+    {
+      "name": "Docker",
+      "category": "tool",
+      "aliases": ["docker", "container"]
+    },
+    {
+      "name": "Git",
+      "category": "tool",
+      "aliases": ["git", "github", "gitlab"]
+    },
+    {
+      "name": "Communication",
+      "category": "soft_skill",
+      "aliases": ["communication", "communicate", "giao tiep"]
+    },
+    {
+      "name": "Teamwork",
+      "category": "soft_skill",
+      "aliases": ["teamwork", "collaboration", "lam viec nhom"]
+    }
+  ]
+}
+

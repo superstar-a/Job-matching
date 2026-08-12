@@ -1,0 +1,17 @@
+Nguyen Van A
+Python Backend Developer
+Ho Chi Minh City
+
+Summary
+Backend developer with 2 years of experience building REST APIs and data processing scripts.
+
+Skills
+Python, FastAPI, SQL, Git, AWS
+
+Experience
+Backend Developer, Example Tech, 2024-01 to Present
+Built REST APIs and data processing jobs with FastAPI, SQL, and Docker.
+
+Education
+Bachelor of Computer Science, Example University, 2024
+

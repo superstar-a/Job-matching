@@ -1,0 +1,44 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 766 >>
+stream
+BT /F1 18 Tf 72 720 Td (Nguyen Van A) Tj ET
+BT /F1 11 Tf 72 696 Td (Python Backend Developer) Tj ET
+BT /F1 11 Tf 72 680 Td (Ho Chi Minh City) Tj ET
+BT /F1 13 Tf 72 652 Td (Summary) Tj ET
+BT /F1 11 Tf 72 636 Td (Backend developer with 2 years of experience building REST APIs and data processing scripts.) Tj ET
+BT /F1 13 Tf 72 608 Td (Skills) Tj ET
+BT /F1 11 Tf 72 592 Td (Python, FastAPI, SQL, Git, AWS) Tj ET
+BT /F1 13 Tf 72 564 Td (Experience) Tj ET
+BT /F1 11 Tf 72 548 Td (Backend Developer, Example Tech, 2024-01 to Present) Tj ET
+BT /F1 11 Tf 72 532 Td (Built REST APIs and data processing jobs with FastAPI, SQL, and Docker.) Tj ET
+BT /F1 13 Tf 72 504 Td (Education) Tj ET
+BT /F1 11 Tf 72 488 Td (Bachelor of Computer Science, Example University, 2024) Tj ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001058 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1128
+%%EOF

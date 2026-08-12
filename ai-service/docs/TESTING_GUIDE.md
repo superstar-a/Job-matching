@@ -15,13 +15,25 @@ cd D:\studies\AWS\Job-matching\ai-service
 Chay lenh:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
+.\venv\Scripts\Activate.ps1
 ```
 
-Neu thanh cong, terminal se hien them `(.venv)` o dau dong:
+Neu thanh cong, terminal se hien them `(venv)` o dau dong:
 
 ```powershell
-(.venv) PS D:\studies\AWS\Job-matching\ai-service>
+(venv) PS D:\studies\AWS\Job-matching\ai-service>
+```
+
+Kiem tra nhanh interpreter dang dung:
+
+```powershell
+where.exe python
+```
+
+Dong dau tien nen la:
+
+```text
+D:\studies\AWS\Job-matching\ai-service\venv\Scripts\python.exe
 ```
 
 ## 3. Cai dependencies neu chua cai
@@ -29,7 +41,7 @@ Neu thanh cong, terminal se hien them `(.venv)` o dau dong:
 Chi can lam buoc nay lan dau, hoac sau khi `requirements.txt` / `requirements-dev.txt` thay doi:
 
 ```powershell
-py -m pip install -r requirements.txt -r requirements-dev.txt
+python -m pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 ## 4. Chay test tu dong bang pytest
@@ -37,13 +49,13 @@ py -m pip install -r requirements.txt -r requirements-dev.txt
 Chay:
 
 ```powershell
-py -m pytest
+python -m pytest
 ```
 
 Ket qua dung hien tai:
 
 ```text
-3 passed
+21 passed
 ```
 
 Neu thay `passed`, nghia la cac test dang thanh cong.
@@ -53,13 +65,19 @@ Hien tai test dang kiem tra:
 - Endpoint `GET /health` tra dung `status`, `service`, `version`.
 - Endpoint `GET /` van tra duoc health contract.
 - Config doc dung cac bien moi truong: `AWS_REGION`, `AI_REQUEST_TIMEOUT_SECONDS`, `AI_CRAWL_DELAY_SECONDS`, `AI_LOG_LEVEL`.
+- HTML cleaner bo layout tags, script/style va decode HTML entities.
+- Static scraper block LinkedIn, dung crawl delay, va normalize JD fields co ban tu HTML/JSON-LD.
+- Deduplicator phat hien trung lap theo URL, external ID, va fingerprint title/company/location.
+- Endpoint `POST /api/scrape-jd` validate URL input.
+- Batch scraper mac dinh chi ghi record `success` vao dataset JSONL.
+- Sample JD dataset co it nhat 20 record va validate duoc voi `JDResponse`.
 
 ## 5. Chay server de test API that
 
 Sau khi `pytest` pass, chay FastAPI server:
 
 ```powershell
-py -m uvicorn main:app --reload --port 8000
+python -m uvicorn main:app --reload --port 8000
 ```
 
 Khi server dang chay, terminal se giu nguyen o trang thai logging. Dung dong terminal nay trong luc dang test API.
@@ -112,9 +130,9 @@ Moi lan sua code trong `ai-service`, nen chay theo thu tu:
 
 ```powershell
 cd D:\studies\AWS\Job-matching\ai-service
-.\.venv\Scripts\Activate.ps1
-py -m pytest
-py -m uvicorn main:app --reload --port 8000
+.\venv\Scripts\Activate.ps1
+python -m pytest
+python -m uvicorn main:app --reload --port 8000
 ```
 
 Sau do mo:
@@ -134,15 +152,21 @@ Neu gap loi:
 Python was not found
 ```
 
-Hay dung lenh `py` thay vi `python`:
+Kiem tra lai venv da duoc kich hoat chua:
 
 ```powershell
-py --version
+where.exe python
+```
+
+Neu dong dau tien khong phai `ai-service\venv\Scripts\python.exe`, kich hoat lai:
+
+```powershell
+.\venv\Scripts\Activate.ps1
 ```
 
 ### Loi: Activate.ps1 cannot be loaded
 
-Neu PowerShell chan kich hoat `.venv`, chay:
+Neu PowerShell chan kich hoat `venv`, chay:
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -151,7 +175,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 Sau do thu lai:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
+.\venv\Scripts\Activate.ps1
 ```
 
 ### Loi: ModuleNotFoundError
@@ -159,7 +183,7 @@ Sau do thu lai:
 Neu gap loi thieu thu vien, cai lai dependencies:
 
 ```powershell
-py -m pip install -r requirements.txt -r requirements-dev.txt
+python -m pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 ### Warning tu pytest
@@ -167,7 +191,7 @@ py -m pip install -r requirements.txt -r requirements-dev.txt
 Neu thay warning nhung van co:
 
 ```text
-3 passed
+21 passed
 ```
 
 thi test van thanh cong. Warning co the xu ly sau khi nang cap dependency.

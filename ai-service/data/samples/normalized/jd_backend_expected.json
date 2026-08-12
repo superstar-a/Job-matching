@@ -1,0 +1,35 @@
+{
+  "source": "manual_sample",
+  "source_url": "https://example.com/company-careers/senior-react-backend-engineer",
+  "external_id": "manual-jd-cleaning-001",
+  "title": "Senior ReactJS Backend Engineer",
+  "company_name": "Example Tech",
+  "location": "Ho Chi Minh City, Ha Noi, Remote",
+  "salary_min": 1500,
+  "salary_max": 2500,
+  "currency": "USD",
+  "job_type": "full_time",
+  "level": "senior",
+  "required_skills": [
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Python",
+    "FastAPI",
+    "SQL",
+    "Amazon Web Services",
+    "Docker"
+  ],
+  "nice_to_have_skills": [],
+  "min_years_experience": 3,
+  "description_text": "Build employer and candidate workflows for a job matching platform. Work with product, backend, and data teams to ship reliable APIs and UI features.",
+  "requirements_text": "3+ years of experience. Strong js, ts, reactjs, python, fastapi, sql, aws, docker",
+  "benefits_text": null,
+  "quality_flags": {
+    "missing_salary": false,
+    "missing_company": false,
+    "short_description": false,
+    "parse_confidence": 1.0
+  }
+}
+

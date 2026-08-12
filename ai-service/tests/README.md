@@ -13,6 +13,7 @@ Thu tu nen viet test:
 Chay test local:
 
 ```powershell
-pip install -r requirements.txt -r requirements-dev.txt
-pytest
+.\venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt -r requirements-dev.txt
+python -m pytest
 ```

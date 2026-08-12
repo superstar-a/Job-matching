@@ -1,0 +1,9 @@
+Senior ReactJS Backend Engineer
+Company: Example Tech
+Location: TP HCM / Hanoi / Remote
+Salary: 1,500 - 2,500 USD
+
+Build employer and candidate workflows for a job matching platform. Work with product, backend, and data teams to ship reliable APIs and UI features.
+
+Requirements: 3+ years of experience with js, ts, reactjs, python, fastapi, sql, aws, and docker.
+
