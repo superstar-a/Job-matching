@@ -14,7 +14,7 @@ DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 DEFAULT_TAXONOMY_PATH = DATA_DIR / "taxonomy" / "skills.json"
 DEFAULT_ALIASES_PATH = DATA_DIR / "taxonomy" / "aliases.json"
 
-SKILL_BOUNDARY = r"(?<![a-z0-9+#.]){}(?![a-z0-9+#.])"
+SKILL_BOUNDARY = r"(?<![a-z0-9+#]){}(?![a-z0-9+#])"
 SHORT_DESCRIPTION_WORD_LIMIT = 25
 
 LOCATION_ALIASES = (

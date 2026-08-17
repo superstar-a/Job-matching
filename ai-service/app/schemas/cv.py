@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class CVExperience(BaseModel):
@@ -87,3 +87,52 @@ class CVProfile(BaseModel):
     projects: list[CVProject] = Field(default_factory=list)
     certificates: list[str] = Field(default_factory=list)
     raw_text: str | None = None
+
+
+class CVParseRequest(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "text": (
+                    "Nguyen Van A\nPython Backend Developer\n\nSkills\n"
+                    "Python, FastAPI, SQL\n\nExperience\n"
+                    "Backend Developer, Example Tech, 2024-01 to Present"
+                ),
+                "filename": None,
+                "file_base64": None,
+                "include_raw_text": False,
+                "mask_pii": True,
+            }
+        }
+    )
+
+    text: str | None = Field(
+        default=None,
+        description="Plain CV text. Use this or file_base64.",
+    )
+    filename: str | None = Field(
+        default=None,
+        description="Original filename when file_base64 is provided.",
+    )
+    file_base64: str | None = Field(
+        default=None,
+        description="Base64 encoded PDF, DOCX, or TXT file content.",
+    )
+    include_raw_text: bool = Field(
+        default=False,
+        description="Return extracted raw text in the response. PII is masked by default.",
+    )
+    mask_pii: bool = Field(
+        default=True,
+        description="Mask or omit email and phone fields from parsed output.",
+    )
+
+    @model_validator(mode="after")
+    def require_text_or_file(self) -> "CVParseRequest":
+        has_text = bool(self.text and self.text.strip())
+        has_file = bool(self.file_base64 and self.file_base64.strip())
+        if has_text == has_file:
+            raise ValueError("Provide exactly one of text or file_base64")
+        if has_file and not self.filename:
+            raise ValueError("filename is required when file_base64 is provided")
+        return self

@@ -1,0 +1,42 @@
+[
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-001",
+    "label": "high",
+    "expected_min_score": 75,
+    "expected_max_score": 100,
+    "reason": "Backend Python CV matches Python, FastAPI, SQL, location, and experience; Docker is the main gap."
+  },
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-003",
+    "label": "medium",
+    "expected_min_score": 45,
+    "expected_max_score": 80,
+    "reason": "Data Engineer JD shares Python and SQL, but the CV has limited Airflow/Spark/data modeling evidence."
+  },
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-005",
+    "label": "medium",
+    "expected_min_score": 35,
+    "expected_max_score": 70,
+    "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused."
+  },
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-002",
+    "label": "low",
+    "expected_min_score": 0,
+    "expected_max_score": 40,
+    "reason": "Frontend React JD has little overlap with the backend Python CV."
+  },
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-011",
+    "label": "low",
+    "expected_min_score": 0,
+    "expected_max_score": 35,
+    "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV."
+  }
+]

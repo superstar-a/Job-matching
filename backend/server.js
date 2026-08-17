@@ -1,7 +1,14 @@
 const http = require('http');
 const url = require('url');
+const { handleJobAssistantChat } = require('./jobAssistant');
+const { matchCvPayload } = require('./matchController');
 
 const PORT = process.env.PORT || 4000;
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_SERVICE_TIMEOUT_MS = Number(process.env.AI_SERVICE_TIMEOUT_MS || 10000);
+const jsonLogger = {
+  warn: (entry) => console.warn(JSON.stringify(entry)),
+};
 
 // Sample Job Database
 const MOCK_JOBS = [
@@ -125,43 +132,48 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Endpoint: AI CV Matcher simulation
+  // Endpoint: AI CV Matcher
   if (pathname === '/api/match' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk);
-    req.on('end', () => {
+    req.on('end', async () => {
       try {
         const payload = JSON.parse(body || '{}');
-        const userSkills = payload.skills || ['Flutter', 'Node.js', 'SQL Server', 'Git', 'JavaScript'];
-        const cvName = payload.fileName || 'Candidate_CV.pdf';
-
-        // Calculate match scores for all jobs based on user skills
-        const results = MOCK_JOBS.map(job => {
-          const matchedSkills = job.skills.filter(s => 
-            userSkills.some(us => us.toLowerCase() === s.toLowerCase() || s.toLowerCase().includes(us.toLowerCase()))
-          );
-          const missingSkills = job.skills.filter(s => !matchedSkills.includes(s));
-          const score = Math.min(99, Math.max(50, Math.round((matchedSkills.length / job.skills.length) * 100) + 15));
-
-          return {
-            jobId: job.id,
-            jobTitle: job.title,
-            company: job.company,
-            salary: job.salary,
-            score: score,
-            matchedSkills: matchedSkills,
-            missingSkills: missingSkills
-          };
-        }).sort((a, b) => b.score - a.score);
+        const matchResponse = await matchCvPayload({
+          payload,
+          jobs: MOCK_JOBS,
+          aiServiceUrl: AI_SERVICE_URL,
+          requestTimeoutMs: AI_SERVICE_TIMEOUT_MS,
+          logger: jsonLogger,
+        });
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          success: true,
-          cvName: cvName,
-          extractedSkills: userSkills,
-          overallCompatibility: results[0] ? results[0].score : 85,
-          recommendedJobs: results
-        }));
+        res.end(JSON.stringify(matchResponse));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
+      }
+    });
+    return;
+  }
+
+  // Endpoint: Conversational Job Assistant
+  if (pathname === '/api/job-assistant/chat' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const chatResponse = await handleJobAssistantChat({
+          payload,
+          jobs: MOCK_JOBS,
+          aiServiceUrl: AI_SERVICE_URL,
+          requestTimeoutMs: AI_SERVICE_TIMEOUT_MS,
+          logger: jsonLogger,
+        });
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(chatResponse));
       } catch (err) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));

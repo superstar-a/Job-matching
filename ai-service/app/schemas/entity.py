@@ -16,6 +16,9 @@ class ExtractedEntity(BaseModel):
                 "confidence": 0.95,
                 "start_char": 42,
                 "end_char": 49,
+                "source_span": "FastAPI",
+                "section": "skills",
+                "evidence": "Skills: Python, FastAPI, SQL",
             }
         }
     )
@@ -28,6 +31,11 @@ class ExtractedEntity(BaseModel):
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     start_char: int | None = Field(default=None, ge=0)
     end_char: int | None = Field(default=None, ge=0)
+    source_span: str | None = None
+    section: str | None = None
+    evidence: str | None = None
+    aliases: list[str] = Field(default_factory=list)
+    recency: str | None = None
 
 
 class EntityExtractionRequest(BaseModel):

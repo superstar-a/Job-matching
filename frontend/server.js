@@ -1,6 +1,7 @@
 const http = require('http');
 
 const PORT = process.env.PORT || 3000;
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 const HTML_CONTENT = `<!DOCTYPE html>
 <html lang="vi">
@@ -194,6 +195,16 @@ const HTML_CONTENT = `<!DOCTYPE html>
       border-radius: 50%; background: var(--bg-dark);
     }
     .score-number { position: relative; z-index: 2; font-family: var(--font-heading); font-size: 32px; font-weight: 800; color: #fff; }
+    .match-job-list { margin-top: 20px; display: grid; gap: 12px; }
+    .match-job-item {
+      border: 1px solid var(--border-color); border-radius: 12px; padding: 14px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .match-job-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .match-job-title { font-weight: 700; font-size: 15px; }
+    .match-job-meta { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+    .match-job-score { color: var(--accent-emerald); font-weight: 800; white-space: nowrap; }
+    .match-job-reason { color: #d1d5db; font-size: 12px; line-height: 1.5; margin-top: 10px; }
 
     .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
     .stat-card {
@@ -312,6 +323,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
               </p>
             </div>
           </div>
+          <div class="match-job-list" id="recommendedJobList"></div>
         </div>
       </div>
     </div>
@@ -411,6 +423,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
   </footer>
 
   <script>
+    var BACKEND_API_URL = '${BACKEND_API_URL}';
     var jobsData = [
       {
         id: 'job-1',
@@ -488,7 +501,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
     }
 
     function fetchJobsFromBackend() {
-      fetch('http://localhost:4000/api/jobs')
+      fetch(BACKEND_API_URL + '/api/jobs')
         .then(function(res) { return res.json(); })
         .then(function(data) {
           if (data && data.success && data.data && data.data.length > 0) {
@@ -538,7 +551,8 @@ const HTML_CONTENT = `<!DOCTYPE html>
     }
 
     function startAIParsing(input) {
-      var fileName = (input.files && input.files[0]) ? input.files[0].name : 'CV_UngVien_Flutter.pdf';
+      var file = (input.files && input.files[0]) ? input.files[0] : null;
+      var fileName = file ? file.name : 'CV_UngVien_Flutter.pdf';
       var progressWrap = document.getElementById('progressWrap');
       var progressBar = document.getElementById('progressBar');
       var statusText = document.getElementById('aiStatusText');
@@ -548,12 +562,17 @@ const HTML_CONTENT = `<!DOCTYPE html>
       statusText.style.display = 'block';
       results.style.display = 'none';
 
+      var matchRequest = readFileAsBase64(file)
+        .then(function(fileBase64) {
+          return requestCvMatch(buildMatchPayload(fileName, fileBase64));
+        });
+
       var step = 0;
       var stepsText = [
-        "Đang quét định dạng file " + fileName + "...",
-        "Đang trích xuất thực thể NLP với Amazon Comprehend...",
-        "Đang so sánh kỹ năng CV với cơ sở dữ liệu SQL Server...",
-        "Đang tính toán Match Score với mô hình Học Máy Scikit-Learn..."
+        'Reading uploaded CV file ' + fileName + '...',
+        'Calling AI-service /api/parse-cv...',
+        'Ranking jobs through Backend /api/match...',
+        'Rendering match score and recommendations...'
       ];
 
       var interval = setInterval(function() {
@@ -563,13 +582,112 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
         if (step >= 100) {
           clearInterval(interval);
-          setTimeout(function() {
-            progressWrap.style.display = 'none';
-            statusText.style.display = 'none';
-            results.style.display = 'block';
-          }, 400);
+          matchRequest
+            .then(function(data) {
+              renderMatchResults(data);
+              progressWrap.style.display = 'none';
+              statusText.style.display = 'none';
+              results.style.display = 'block';
+            })
+            .catch(function(error) {
+              console.log('CV match failed', error);
+              statusText.innerText = 'Cannot connect to Backend API. Check backend port 4000 and try again.';
+              progressBar.style.width = '0%';
+            });
         }
       }, 500);
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise(function(resolve, reject) {
+        if (!file) {
+          resolve(null);
+          return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function() {
+          var raw = String(reader.result || '');
+          var parts = raw.split(',');
+          resolve(parts.length > 1 ? parts[1] : raw);
+        };
+        reader.onerror = function() {
+          reject(new Error('Cannot read CV file'));
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function buildMatchPayload(fileName, fileBase64) {
+      var payload = {
+        fileName: fileName,
+        title: 'AI/Data Candidate',
+        location: 'Vietnam',
+        totalYearsExperience: 2,
+        skills: ['Python', 'FastAPI', 'SQL', 'Docker', 'Git']
+      };
+
+      if (fileBase64) {
+        payload.fileBase64 = fileBase64;
+      }
+
+      return payload;
+    }
+
+    function requestCvMatch(payload) {
+      return fetch(BACKEND_API_URL + '/api/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function(response) {
+        if (!response.ok) {
+          throw new Error('Backend match failed with status ' + response.status);
+        }
+        return response.json();
+      }).then(function(data) {
+        if (!data || !data.success) {
+          throw new Error((data && data.error) || 'Backend match returned an invalid response');
+        }
+        return data;
+      });
+    }
+
+    function renderMatchResults(data) {
+      var score = Math.round(data.overallCompatibility || 0);
+      var scoreEl = document.getElementById('resultScore');
+      var scoreCircle = document.querySelector('.score-circle');
+      var skillTags = document.getElementById('extractedSkillTags');
+      var jobList = document.getElementById('recommendedJobList');
+      var skills = data.extractedSkills || [];
+      var jobs = (data.recommendedJobs || []).slice(0, 3);
+
+      scoreEl.innerText = score + '%';
+      scoreCircle.style.background = 'conic-gradient(var(--accent-emerald) ' + score + '%, rgba(255, 255, 255, 0.1) 0)';
+      skillTags.innerHTML = skills.map(function(skill) {
+        return '<span class="tag" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald);">OK ' + escapeHtml(skill) + '</span>';
+      }).join('');
+
+      jobList.innerHTML = jobs.map(function(job) {
+        return '<div class="match-job-item">' +
+          '<div class="match-job-head">' +
+            '<div>' +
+              '<div class="match-job-title">' + escapeHtml(job.jobTitle || 'Untitled job') + '</div>' +
+              '<div class="match-job-meta">' + escapeHtml(job.company || 'Unknown company') + ' - ' + escapeHtml(job.salary || 'Salary hidden') + '</div>' +
+            '</div>' +
+            '<div class="match-job-score">' + Math.round(job.score || 0) + '%</div>' +
+          '</div>' +
+          '<div class="match-job-reason">' + escapeHtml(job.recommendationReason || 'Matched skills: ' + (job.matchedSkills || []).join(', ')) + '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function createNewJob() {

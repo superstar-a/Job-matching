@@ -28,6 +28,33 @@ class MatchRequest(BaseModel):
     job: JobDescription
 
 
+class RecommendJobsRequest(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "cv": {
+                    "candidate_name": "Nguyen Van A",
+                    "title": "Python Backend Developer",
+                    "skills": ["Python", "FastAPI", "SQL", "Git"],
+                    "total_years_experience": 2,
+                },
+                "jobs": [
+                    {
+                        "source": "sample",
+                        "external_id": "sample-job-001",
+                        "title": "Python FastAPI Developer",
+                        "required_skills": ["Python", "FastAPI", "SQL", "Docker"],
+                        "description_text": "Build APIs and data pipelines for job matching.",
+                    }
+                ],
+            }
+        }
+    )
+
+    cv: CVProfile
+    jobs: list[JobDescription]
+
+
 class MatchResult(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={

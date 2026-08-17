@@ -55,7 +55,7 @@ python -m pytest
 Ket qua dung hien tai:
 
 ```text
-21 passed
+27 passed
 ```
 
 Neu thay `passed`, nghia la cac test dang thanh cong.
@@ -71,6 +71,9 @@ Hien tai test dang kiem tra:
 - Endpoint `POST /api/scrape-jd` validate URL input.
 - Batch scraper mac dinh chi ghi record `success` vao dataset JSONL.
 - Sample JD dataset co it nhat 20 record va validate duoc voi `JDResponse`.
+- CV parser doc duoc TXT/PDF/DOCX sample va tra `CVProfile` co cau truc.
+- Entity extractor tra skill/year/location/work_mode co normalized value, section, evidence va source span.
+- Endpoint `POST /api/parse-cv` va `POST /api/extract-entities` hoat dong qua FastAPI `TestClient`.
 
 ## 5. Chay server de test API that
 
@@ -191,7 +194,7 @@ python -m pip install -r requirements.txt -r requirements-dev.txt
 Neu thay warning nhung van co:
 
 ```text
-21 passed
+27 passed
 ```
 
 thi test van thanh cong. Warning co the xu ly sau khi nang cap dependency.
