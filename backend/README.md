@@ -32,7 +32,9 @@ Dự án được tích hợp sẵn một công cụ CLI chuyên dụng (lệnh 
 
 Để tạo các bảng trong Database dựa trên Schema hiện tại, chạy lệnh:
 ```bash
-npm run jm -- db:init
+npm run build
+npm link
+jm db:i
 # Hoặc sử dụng alias: npm run jm -- db:i
 ```
 *(Lệnh này sẽ tự động chạy `prisma generate` và `prisma db push`)*
@@ -41,6 +43,7 @@ npm run jm -- db:init
 Sau khi Database được khởi tạo, bạn cần tạo ngay một tài khoản Admin để có thể đăng nhập vào hệ thống:
 ```bash
 npm run jm -- admin:create --email=admin@jobmatching.com --password=MySecretPassword123
+jm a:c --email=admin@jobmatching.com --password=MySecretPassword123
 # Hoặc dùng alias: npm run jm -- a:c --email=...
 ```
 
