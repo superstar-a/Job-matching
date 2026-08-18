@@ -8,3 +8,9 @@ __pycache__/
 dist/
 .vite/
 *.log
+instructions/
+sql/
+/generated/prisma
+.agents/
+.windsurf/
+.claude/
