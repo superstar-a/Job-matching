@@ -1,7 +1,6 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, HttpException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from './dto/LoginDto';
 import { DatabaseService } from 'src/database/database.service';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt'
 import { RegisterDto } from './dto/RegisterDto';
 import { JwtAuthService } from './jwtService';
@@ -72,6 +71,9 @@ export class AuthService {
         refreshToken,
       };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -154,8 +156,10 @@ export class AuthService {
         accessToken,
         refreshToken,
       };
-    }
-    catch (error) {
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -275,7 +279,7 @@ export class AuthService {
         refreshToken,
       };
     } catch (error) {
-      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+      if (error instanceof HttpException) {
         throw error;
       }
       throw new InternalServerErrorException('Google login failed: ' + error.message);

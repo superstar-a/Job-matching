@@ -3,13 +3,14 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import type { Request } from 'express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('users')
 @ApiTags('Users')
+@ApiBearerAuth()
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('Admin', 'User')
 export class UsersController {

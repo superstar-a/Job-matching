@@ -57,6 +57,14 @@ Backend sẽ khởi động tại **`http://localhost:4000`** (hoặc Port bạn
 Khi Server đang chạy, bạn có thể truy cập toàn bộ tài liệu API và test API trực tiếp thông qua **Swagger UI** tại:
 👉 **[http://localhost:4000/api/docs](http://localhost:4000/api/docs)**
 
+### 🔐 Hướng dẫn xác thực (Authorize) trên Swagger
+Để test các API yêu cầu quyền đăng nhập hoặc quyền Admin/User (có ổ khóa góc phải), bạn cần làm theo các bước sau:
+1. Mở nhóm API **Authentication** và test API `POST /auth/login` với tài khoản bạn đã tạo qua CLI.
+2. Lấy giá trị chuỗi `accessToken` trả về trong Response Body.
+3. Bấm vào nút **Authorize** (biểu tượng ổ khóa màu xanh lá cây) ở góc phải trên cùng của trang Swagger.
+4. **CHỈ CẦN DÁN TRỰC TIẾP** chuỗi Token vào ô Value (❌ KHÔNG GÕ thêm chữ `Bearer ` ở phía trước, vì Swagger đã được cấu hình tự động thêm từ khóa này vào Header).
+5. Bấm **Authorize** để lưu lại. Kể từ giờ mọi API có ổ khóa sẽ tự động gửi kèm Token này!
+
 ---
 
 ## 🧰 Danh sách các lệnh CLI (`jm`) hỗ trợ

@@ -1,14 +1,19 @@
 import { IsNotEmpty, IsString, Max, Min } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class CreatePermissionDto {
+    @ApiProperty({
+        example: 'CREATE_POST',
+        description: 'The identifier for the permission'
+    })
     @IsString()
-    @Min(3)
-    @Max(20)
     permissionName: string;
 
+    @ApiProperty({
+        example: 'Allows the user to create a new blog post',
+        description: 'Description of the permission'
+    })
     @IsString()
     @IsNotEmpty()
-    @Min(10)
-    @Max(255)
     description: string;
 }

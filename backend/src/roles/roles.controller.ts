@@ -8,6 +8,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('Roles')
+@ApiBearerAuth()
 @Controller('roles')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('Admin') 
@@ -15,7 +16,6 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) { }
 
   @Post()
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a role' })
   @ApiResponse({ status: 201, description: 'The role has been successfully created.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
