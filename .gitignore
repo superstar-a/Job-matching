@@ -3,3 +3,8 @@ node_modules/
 __pycache__/
 *.pyc
 .next/
+
+# Frontend (Vite / React)
+dist/
+.vite/
+*.log
