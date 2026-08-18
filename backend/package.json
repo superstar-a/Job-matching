@@ -5,6 +5,9 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "bin": {
+    "jm": "./dist/src/cli-command/cli.js"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -17,7 +20,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "jm": "ts-node -r tsconfig-paths/register src/cli-command/cli.ts",
+    "jm:prod": "node dist/src/cli-command/cli.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -29,8 +34,10 @@
     "@prisma/adapter-mssql": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "bcrypt": "^6.0.0",
+    "chalk": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "commander": "^15.0.0",
     "google-auth-library": "^11.0.2",
     "jsonwebtoken": "^9.0.3",
     "mssql": "^12.7.0",
