@@ -76,3 +76,19 @@ def predict_match(payload: JobMatchRequest):
         'missing_skills': [s.capitalize() for s in job - cand],
         'recommendation': 'High Candidate Fit' if final_score >= 80 else 'Moderate Candidate Fit'
     }
+
+@app.post('/api/v1/aws/analyze-cv')
+def aws_analyze_cv(payload: CVAnalysisRequest):
+    """Upload CV to S3 and Extract Skills using Amazon Comprehend NLP"""
+    from app.services.aws_service import aws_service
+    
+    cv_filename = f"cv_{payload.target_role or 'general'}.txt"
+    s3_result = aws_service.upload_cv(payload.cv_text.encode('utf-8'), cv_filename)
+    nlp_result = aws_service.detect_entities(payload.cv_text)
+    
+    return {
+        "status": "success",
+        "s3_upload": s3_result,
+        "nlp_extraction": nlp_result
+    }
+
