@@ -42,7 +42,7 @@ export class UsersService {
             create: {
               authProvider: 'Local',
               passwordHash: hashedPassword,
-              passwordSalt: salt,
+
             },
           },
           userRoles: {
