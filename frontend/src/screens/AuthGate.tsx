@@ -237,6 +237,13 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
           onAuthenticated(result.user)
         } else {
           setStatus(result.message)
+          if (result.field) {
+            setErrors((prev) => ({
+              ...prev,
+              [result.field!]: result.message,
+            }))
+            fieldRefs.current[result.field!]?.focus()
+          }
         }
         return
       }
@@ -301,16 +308,16 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
         </div>
 
         <div className="my-auto max-w-2xl py-16">
-          <p className="editorial-kicker mb-6">Định hướng nghề nghiệp, rõ ràng hơn</p>
+          <p className="editorial-kicker mb-6">Nền tảng tuyển dụng & phát triển sự nghiệp</p>
           <h1
-            className="editorial-title max-w-[12ch]"
+            className="editorial-title max-w-[14ch]"
             id="auth-narrative-title"
           >
-            Biến tín hiệu nghề nghiệp thành bước tiến có chủ đích.
+            Kết nối tài năng với cơ hội việc làm lý tưởng.
           </h1>
           <p className="mt-8 max-w-xl text-base leading-7 text-muted-ink xl:text-lg xl:leading-8">
-            Tập trung hồ sơ, cơ hội và quyết định tiếp theo trong một không gian
-            làm việc biên tập dành riêng cho hành trình của bạn.
+            Tìm kiếm công việc mơ ước, tối ưu hóa hồ sơ năng lực và kết nối trực tiếp
+            với các doanh nghiệp hàng đầu cùng JobMatch Studio.
           </p>
         </div>
 
@@ -384,12 +391,49 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                 </h2>
                 <p className="mt-4 text-base leading-7 text-muted-ink">
                   {view === "sign-in"
-                    ? "Đăng nhập để tiếp tục xây dựng hành trình nghề nghiệp có chủ đích."
+                    ? "Đăng nhập để tiếp tục xây dựng hành trình nghề nghiệp của bạn."
                     : view === "sign-up"
-                      ? "Tạo hồ sơ mô phỏng để khám phá không gian làm việc của LJOBS."
-                      : "Nhập email và chúng tôi sẽ mô phỏng gửi hướng dẫn đặt lại mật khẩu."}
+                      ? "Tạo tài khoản để khám phá hàng ngàn cơ hội việc làm hấp dẫn."
+                      : "Nhập email để nhận hướng dẫn đặt lại mật khẩu cho tài khoản của bạn."}
                 </p>
               </header>
+
+              {status && !isFormLoading && !isGoogleLoading ? (
+                <div
+                  role="alert"
+                  className={`mb-5 flex items-start gap-3 rounded-[3px] border p-3.5 text-sm transition-all duration-200 ${
+                    status.includes("thành công")
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : "border-red-200 bg-red-50 text-red-800"
+                  }`}
+                >
+                  <svg
+                    className={`mt-0.5 size-5 shrink-0 ${
+                      status.includes("thành công") ? "text-emerald-600" : "text-red-600"
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    {status.includes("thành công") ? (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    ) : (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    )}
+                  </svg>
+                  <div className="flex-1 font-medium leading-5">{status}</div>
+                </div>
+              ) : null}
 
               <form className="space-y-5" noValidate onSubmit={handleSubmit}>
                 {view === "sign-up" ? (
@@ -478,8 +522,8 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                           type="checkbox"
                         />
                         <span>
-                          Tôi đồng ý với điều khoản sử dụng và xác nhận đây là trải
-                          nghiệm giao diện mô phỏng.
+                          Tôi đồng ý với các điều khoản sử dụng và chính sách bảo mật
+                          của JobMatch.
                         </span>
                       </label>
                       {errors.termsAccepted ? (
@@ -538,11 +582,8 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                     type="button"
                   >
                     <GoogleIcon className="size-5 shrink-0" />
-                    {isGoogleLoading ? "Đang kết nối mô phỏng…" : "Tiếp tục với Google"}
+                    {isGoogleLoading ? "Đang kết nối Google…" : "Tiếp tục với Google"}
                   </button>
-                  <p className="mt-3 text-center text-xs leading-5 text-muted-ink">
-                    Bản mô phỏng giao diện — chưa kết nối Google OAuth.
-                  </p>
                 </div>
               ) : null}
 

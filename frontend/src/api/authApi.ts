@@ -137,7 +137,7 @@ export const authApi = {
   /**
    * Register a new user
    */
-  async register(payload: RegisterPayload): Promise<{ ok: true; user: AuthenticatedUser } | { ok: false; message: string }> {
+  async register(payload: RegisterPayload): Promise<{ ok: true; user: AuthenticatedUser } | { ok: false; message: string; field?: "fullName" | "email" }> {
     try {
       // Backend RegisterDto username must not contain spaces
       const formattedUsername = payload.username.trim().replace(/\s+/g, "_") || payload.email.split("@")[0]
@@ -157,12 +157,24 @@ export const authApi = {
       const data = await response.json()
 
       if (!response.ok) {
-        let msg = data.message || "Đăng ký thất bại. Vui lòng thử lại."
-        if (Array.isArray(msg)) msg = msg.join(", ")
-        if (msg.includes("already exists")) {
-          msg = "Tài khoản hoặc email này đã tồn tại trong hệ thống."
+        const rawMsg = data.message || "Đăng ký thất bại. Vui lòng thử lại."
+        let msg = Array.isArray(rawMsg) ? rawMsg.join(", ") : rawMsg
+        let field: "fullName" | "email" | undefined = undefined
+
+        const lowerMsg = msg.toLowerCase()
+        if (lowerMsg.includes("username") && lowerMsg.includes("already exists")) {
+          msg = `Tên người dùng "${payload.username}" đã tồn tại. Vui lòng chọn một tên khác.`
+          field = "fullName"
+        } else if (lowerMsg.includes("email") && lowerMsg.includes("already exists")) {
+          msg = `Địa chỉ email "${payload.email}" đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.`
+          field = "email"
+        } else if (lowerMsg.includes("password must be shorter") || lowerMsg.includes("maxlength")) {
+          msg = "Mật khẩu không được dài quá 12 ký tự."
+        } else if (lowerMsg.includes("password must not be less") || lowerMsg.includes("minlength")) {
+          msg = "Mật khẩu phải có tối thiểu 6 ký tự."
         }
-        return { ok: false, message: msg }
+
+        return { ok: false, message: msg, field }
       }
 
       const authenticatedUser: AuthenticatedUser = {
