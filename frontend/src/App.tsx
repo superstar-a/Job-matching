@@ -32,15 +32,24 @@ export default function App() {
   const isInitialAdmin = () => {
     if (typeof window === "undefined") return false
     const session = authApi.getCurrentUser()
-    if (session?.role === "Admin") return true
+    
     const hash = window.location.hash.toLowerCase()
     const search = window.location.search.toLowerCase()
     const pathname = window.location.pathname.toLowerCase()
-    return (
+    const isAdminRoute =
       hash.includes("admin") ||
       search.includes("admin") ||
       pathname.includes("/admin")
-    )
+      
+    if (session?.role === "User") {
+      if (isAdminRoute) {
+        window.location.hash = ""
+      }
+      return false
+    }
+
+    if (session?.role === "Admin") return true
+    return isAdminRoute
   }
 
   const [isAdminPortal, setIsAdminPortal] = useState(isInitialAdmin)
