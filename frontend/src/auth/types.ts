@@ -2,6 +2,10 @@ export type AuthUser = {
   id: string
   name: string
   email: string
+  username?: string
+  role?: "Admin" | "User"
+  accessToken?: string
+  refreshToken?: string
 }
 
 export type AuthResult =

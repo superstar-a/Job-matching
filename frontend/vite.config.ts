@@ -20,9 +20,45 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: parseInt(process.env.PORT || "3000"),
+    proxy: {
+      "/auth": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/users": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/roles": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/permission": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     host: "0.0.0.0",
     port: parseInt(process.env.PORT || "3000"),
+    proxy: {
+      "/auth": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/users": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/roles": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/permission": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+    },
   },
 })

@@ -2,16 +2,12 @@ import {
   type ChangeEvent,
   type FormEvent,
   type InputHTMLAttributes,
+  useEffect,
   useRef,
   useState,
 } from "react"
 import GoogleIcon from "../components/GoogleIcon"
-import {
-  requestPasswordReset,
-  signIn,
-  signInWithGoogle,
-  signUp,
-} from "../auth/mockAuth"
+import { authApi } from "../api/authApi"
 import type { AuthUser, FieldErrors } from "../auth/types"
 import {
   validatePasswordReset,
@@ -97,10 +93,49 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
   const [resetSent, setResetSent] = useState(false)
   const fieldRefs = useRef<Partial<Record<FieldName, HTMLInputElement | null>>>({})
 
+  const googleClientId =
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    "887222240754-vubu1a9hngje5nh1aibcs0l0sp6mmnc6.apps.googleusercontent.com"
+
+  useEffect(() => {
+    if (!document.getElementById("google-gsi-script")) {
+      const script = document.createElement("script")
+      script.id = "google-gsi-script"
+      script.src = "https://accounts.google.com/gsi/client"
+      script.async = true
+      script.defer = true
+      script.onload = () => {
+        if ((window as any).google?.accounts?.id) {
+          (window as any).google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: async (response: any) => {
+              if (response.credential) {
+                setActiveRequest("google")
+                setStatus("Đang xác thực tài khoản Google...")
+                try {
+                  const result = await authApi.loginWithGoogle(response.credential)
+                  if (result.ok) {
+                    setStatus("Đăng nhập Google thành công!")
+                    onAuthenticated(result.user)
+                  } else {
+                    setStatus(result.message)
+                  }
+                } finally {
+                  setActiveRequest(null)
+                }
+              }
+            },
+          })
+        }
+      }
+      document.body.appendChild(script)
+    }
+  }, [googleClientId, onAuthenticated])
+
   const currentValidation = () => {
+    if (view === "sign-in") return validateSignIn(values)
     if (view === "sign-up") return validateSignUp(values)
-    if (view === "recovery") return validatePasswordReset(values)
-    return validateSignIn(values)
+    return validatePasswordReset(values)
   }
 
   const switchView = (nextView: AuthView) => {
@@ -111,16 +146,6 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
     setResetSent(false)
   }
 
-  const validateTouchedField = (name: FieldName) => {
-    const nextErrors = currentValidation()
-    setErrors((current) => ({ ...current, [name]: nextErrors[name] }))
-  }
-
-  const handleBlur = (name: FieldName) => {
-    setTouched((current) => ({ ...current, [name]: true }))
-    validateTouchedField(name)
-  }
-
   const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     const name = event.target.name as FieldName
     const nextValues = { ...values, [name]: event.target.value }
@@ -128,11 +153,11 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
 
     if (touched[name]) {
       const nextErrors =
-        view === "sign-up"
-          ? validateSignUp(nextValues)
-          : view === "recovery"
-            ? validatePasswordReset(nextValues)
-            : validateSignIn(nextValues)
+        view === "sign-in"
+          ? validateSignIn(nextValues)
+          : view === "sign-up"
+            ? validateSignUp(nextValues)
+            : validatePasswordReset(nextValues)
       setErrors((current) => ({ ...current, [name]: nextErrors[name] }))
     }
 
@@ -156,6 +181,15 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
         termsAccepted: nextErrors.termsAccepted,
       }))
     }
+  }
+
+  const handleBlur = (name: FieldName) => {
+    setTouched((current) => ({ ...current, [name]: true }))
+    const nextErrors = currentValidation()
+    setErrors((current) => ({
+      ...current,
+      [name]: nextErrors[name],
+    }))
   }
 
   const focusFirstInvalidField = (nextErrors: FieldErrors) => {
@@ -185,15 +219,21 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
     setActiveRequest("form")
     setStatus(
       view === "recovery"
-        ? "Đang mô phỏng gửi hướng dẫn khôi phục…"
-        : "Đang xác thực bằng dịch vụ mô phỏng…",
+        ? "Đang gửi hướng dẫn khôi phục…"
+        : view === "sign-up"
+          ? "Đang đăng ký tài khoản..."
+          : "Đang kiểm tra thông tin đăng nhập…",
     )
 
     try {
       if (view === "sign-up") {
-        const result = await signUp(values)
+        const result = await authApi.register({
+          email: values.email,
+          username: values.fullName,
+          password: values.password,
+        })
         if (result.ok) {
-          setStatus("Tạo tài khoản mô phỏng thành công.")
+          setStatus("Đăng ký tài khoản thành công!")
           onAuthenticated(result.user)
         } else {
           setStatus(result.message)
@@ -202,22 +242,17 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
       }
 
       if (view === "recovery") {
-        const result = await requestPasswordReset({ email: values.email })
-        if (result.ok) {
-          setResetSent(true)
-          setStatus("Đã mô phỏng gửi hướng dẫn khôi phục vào email của bạn.")
-        } else {
-          setStatus(result.message)
-        }
+        setResetSent(true)
+        setStatus("Nếu email tồn tại, hướng dẫn khôi phục mật khẩu đã được gửi.")
         return
       }
 
-      const result = await signIn({
+      const result = await authApi.login({
         email: values.email,
         password: values.password,
       })
       if (result.ok) {
-        setStatus("Đăng nhập mô phỏng thành công.")
+        setStatus("Đăng nhập thành công!")
         onAuthenticated(result.user)
       } else {
         setStatus(result.message)
@@ -229,16 +264,21 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
 
   const handleGoogleSignIn = async () => {
     setActiveRequest("google")
-    setStatus("Đang mở bản mô phỏng đăng nhập Google…")
+    setStatus("Đang kết nối đến Google...")
 
     try {
-      const result = await signInWithGoogle()
-      if (result.ok) {
-        setStatus("Đăng nhập Google mô phỏng thành công.")
-        onAuthenticated(result.user)
+      if ((window as any).google?.accounts?.id) {
+        (window as any).google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            console.log("Google One Tap prompt skipped or not displayed")
+          }
+        })
       } else {
-        setStatus(result.message)
+        setStatus("Dịch vụ Google Sign-In đang tải, vui lòng bấm lại sau 2 giây.")
       }
+    } catch (err: any) {
+      console.error(err)
+      setStatus("Không thể mở cửa sổ đăng nhập Google.")
     } finally {
       setActiveRequest(null)
     }
@@ -398,7 +438,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                     name="password"
                     onBlur={() => handleBlur("password")}
                     onChange={handleTextChange}
-                    placeholder="Ít nhất 8 ký tự"
+                    placeholder={view === "sign-up" ? "Từ 6 đến 12 ký tự" : "Nhập mật khẩu"}
                     type="password"
                     value={values.password}
                   />

@@ -8,6 +8,8 @@ interface SidebarProps {
   isCollapsed: boolean
   onToggle: () => void
   isCvUploaded: boolean
+  currentUser?: { name: string; email: string; role?: string } | null
+  onLogout?: () => void
 }
 
 const NAV_GROUPS = [
@@ -51,7 +53,13 @@ export default function Sidebar({
   isCollapsed,
   onToggle,
   isCvUploaded,
+  currentUser,
+  onLogout,
 }: SidebarProps) {
+  const displayName = currentUser?.name || currentUser?.email?.split("@")[0] || "Nguyễn M. Tuấn"
+  const displayEmail = currentUser?.email || "tuannm@gmail.com"
+  const userInitials = displayName.split(" ").map((w) => w[0]).slice(-2).join("").toUpperCase() || "NT"
+
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
@@ -263,14 +271,14 @@ export default function Sidebar({
                 {/* Header User */}
                 <div className="flex items-center gap-2.5 rounded-xl bg-white/5 p-2 mb-1.5">
                   <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#10b981] text-[11px] font-bold text-white shadow-sm">
-                    NT
+                    {userInitials}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-semibold text-white">
-                      Nguyễn Minh Tuấn
+                      {displayName}
                     </p>
                     <p className="truncate text-[10px] text-white/50">
-                      tuannm@gmail.com
+                      {displayEmail}
                     </p>
                   </div>
                 </div>
@@ -305,9 +313,10 @@ export default function Sidebar({
                     type="button"
                     onClick={() => {
                       setIsUserMenuOpen(false)
-                      onNavigate("auth")
+                      if (onLogout) onLogout()
+                      else onNavigate("auth")
                     }}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-red-400 hover:bg-red-500/15 hover:text-red-300 transition-colors text-left font-semibold"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-red-400 hover:bg-red-500/15 hover:text-red-300 transition-colors text-left font-semibold cursor-pointer"
                   >
                     <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -327,15 +336,15 @@ export default function Sidebar({
               } ${isUserMenuOpen ? "bg-white/10" : ""}`}
               aria-label="Menu tài khoản"
               aria-expanded={isUserMenuOpen}
-              title={isCollapsed ? "Nguyễn M. Tuấn (Menu tài khoản)" : undefined}
+              title={isCollapsed ? `${displayName} (Menu tài khoản)` : undefined}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-[#10b981] text-xs font-bold text-white shadow-sm">
-                  NT
+                  {userInitials}
                 </div>
                 {!isCollapsed && (
                   <span className="truncate text-xs font-semibold text-white">
-                    Nguyễn M. Tuấn
+                    {displayName}
                   </span>
                 )}
               </div>
