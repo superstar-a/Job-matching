@@ -31,9 +31,9 @@ export default function IAMUsersList({
 
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
-      u.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.role.toLowerCase().includes(searchQuery.toLowerCase())
+      (u.userName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.role || "").toLowerCase().includes(searchQuery.toLowerCase())
     const matchesRole = roleFilter === "All" || u.role === roleFilter
     return matchesSearch && matchesRole
   })
@@ -172,10 +172,10 @@ export default function IAMUsersList({
               ...(roles
                 ? roles.map((r) => ({ id: r.name, label: r.name }))
                 : [
-                    { id: "Super Admin", label: "Super Admin" },
-                    { id: "Admin", label: "Admin" },
-                    { id: "User", label: "User" },
-                  ]),
+                  { id: "Super Admin", label: "Super Admin" },
+                  { id: "Admin", label: "Admin" },
+                  { id: "User", label: "User" },
+                ]),
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -184,11 +184,10 @@ export default function IAMUsersList({
                   setRoleFilter(tab.id)
                   setCurrentPage(1)
                 }}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
-                  roleFilter === tab.id
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${roleFilter === tab.id
                     ? "bg-blue-600 text-white shadow-xs"
                     : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -251,9 +250,8 @@ export default function IAMUsersList({
                 return (
                   <tr
                     key={u.id}
-                    className={`transition-colors hover:bg-slate-50/80 ${
-                      isSelected ? "bg-blue-50/40" : ""
-                    }`}
+                    className={`transition-colors hover:bg-slate-50/80 ${isSelected ? "bg-blue-50/40" : ""
+                      }`}
                   >
                     <td className="px-4 py-3.5 text-center">
                       <input
@@ -261,13 +259,13 @@ export default function IAMUsersList({
                         checked={isSelected}
                         onChange={() => toggleSelectUser(u.id)}
                         className="size-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                        aria-label={`Chọn ${u.userName}`}
+                        aria-label={`Chọn ${u.userName || u.email}`}
                       />
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
                         <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 font-bold text-xs text-slate-700 shadow-2xs">
-                          {u.userName.charAt(0).toUpperCase()}
+                          {(u.userName || u.email || "?").charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <button
@@ -275,7 +273,7 @@ export default function IAMUsersList({
                             onClick={() => onSelectUser(u)}
                             className="font-bold text-blue-600 hover:text-blue-800 hover:underline text-left block leading-tight"
                           >
-                            {u.userName}
+                            {u.userName || "Chưa có tên"}
                           </button>
                           <span className="text-[11px] text-slate-400 leading-tight mt-0.5 block">
                             {u.email}
@@ -288,7 +286,7 @@ export default function IAMUsersList({
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex flex-wrap gap-1 max-w-xs">
-                        {u.customPermissions.slice(0, 3).map((code) => (
+                        {(u.customPermissions || []).slice(0, 3).map((code) => (
                           <span
                             key={code}
                             className="inline-flex items-center rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-[10px] font-mono text-slate-700"
@@ -297,9 +295,9 @@ export default function IAMUsersList({
                             {code}
                           </span>
                         ))}
-                        {u.customPermissions.length > 3 && (
+                        {(u.customPermissions || []).length > 3 && (
                           <span className="inline-flex items-center rounded bg-blue-50 border border-blue-200 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">
-                            +{u.customPermissions.length - 3} quyền
+                            +{(u.customPermissions || []).length - 3} quyền
                           </span>
                         )}
                       </div>

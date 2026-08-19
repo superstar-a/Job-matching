@@ -16,6 +16,8 @@ interface IAMLayoutProps {
   permissionCount: number
   breadcrumbs: BreadcrumbItem[]
   children: ReactNode
+  currentUser?: { name: string; email: string; role?: string } | null
+  onLogout?: () => void
 }
 
 export default function IAMLayout({
@@ -26,7 +28,12 @@ export default function IAMLayout({
   permissionCount,
   breadcrumbs,
   children,
+  currentUser,
+  onLogout,
 }: IAMLayoutProps) {
+  const displayName = currentUser?.name || currentUser?.email?.split("@")[0] || "Admin"
+  const initial = displayName.charAt(0).toUpperCase()
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-[#F8FAFC] text-[#0F172A] font-sans antialiased selection:bg-blue-500 selection:text-white">
       {/* Ultra-Premium Header */}
@@ -59,28 +66,43 @@ export default function IAMLayout({
         </div>
 
         {/* Right Info & Profile */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Live Status Indicator */}
           <div className="hidden sm:flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-medium text-emerald-400 border border-emerald-500/20 shadow-xs">
             <span className="relative flex size-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
             </span>
-            <span>Hệ thống hoạt động bình thường</span>
+            <span>Hệ thống trực tuyến</span>
           </div>
 
           <div className="h-4 w-px bg-white/10" />
 
           {/* Current Admin User Badge */}
-          <div className="flex items-center gap-2.5 rounded-lg bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs text-white border border-white/10 transition-colors cursor-pointer">
+          <div className="flex items-center gap-2.5 rounded-lg bg-white/5 px-3 py-1.5 text-xs text-white border border-white/10 shadow-xs">
             <div className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-[11px] font-bold text-white shadow-xs">
-              S
+              {initial}
             </div>
             <div className="text-left">
-              <p className="text-[11px] font-bold leading-none text-slate-100">admin.super</p>
-              <p className="text-[9px] text-purple-300 font-semibold leading-none mt-0.5">★ Super Admin</p>
+              <p className="text-[11px] font-bold leading-none text-slate-100">{displayName}</p>
+              <p className="text-[9px] text-purple-300 font-semibold leading-none mt-0.5">★ Quản trị viên (Admin)</p>
             </div>
           </div>
+
+          {/* Logout Button */}
+          {onLogout && (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="flex items-center gap-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-300 transition-colors cursor-pointer"
+              title="Đăng xuất khỏi trang Admin"
+            >
+              <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+              </svg>
+              <span>Đăng xuất</span>
+            </button>
+          )}
         </div>
       </header>
 

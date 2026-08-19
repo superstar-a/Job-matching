@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: YourPassword123! # Yêu cầu mật khẩu mạnh (chữ hoa, chữ thường, số, ký tự đặc biệt)
+      SA_PASSWORD: 123 # Yêu cầu mật khẩu mạnh (chữ hoa, chữ thường, số, ký tự đặc biệt)
       MSSQL_PID: "Developer"
     ports:
       - "${DB_PORT}:1433"
@@ -28,7 +28,7 @@ services:
       DB_TYPE: mssql
       DB_HOST: db
       DB_PORT: 1433
-      DB_USER: ${DB_USER:-sa}
+      DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       AI_SERVICE_URL: http://ai-service:8000

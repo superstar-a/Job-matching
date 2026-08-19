@@ -2,16 +2,12 @@ import {
   type ChangeEvent,
   type FormEvent,
   type InputHTMLAttributes,
+  useEffect,
   useRef,
   useState,
 } from "react"
 import GoogleIcon from "../components/GoogleIcon"
-import {
-  requestPasswordReset,
-  signIn,
-  signInWithGoogle,
-  signUp,
-} from "../auth/mockAuth"
+import { authApi } from "../api/authApi"
 import type { AuthUser, FieldErrors } from "../auth/types"
 import {
   validatePasswordReset,
@@ -49,11 +45,10 @@ function Field({ error, inputRef, label, name, ...inputProps }: FieldProps) {
         {...inputProps}
         aria-describedby={error ? errorId : undefined}
         aria-invalid={Boolean(error)}
-        className={`${inputClassName} ${
-          error
+        className={`${inputClassName} ${error
             ? "border-red-500"
             : "border-rule hover:border-muted-ink/70"
-        }`}
+          }`}
         id={name}
         name={name}
         ref={inputRef}
@@ -97,10 +92,49 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
   const [resetSent, setResetSent] = useState(false)
   const fieldRefs = useRef<Partial<Record<FieldName, HTMLInputElement | null>>>({})
 
+  const googleClientId =
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    "887222240754-vubu1a9hngje5nh1aibcs0l0sp6mmnc6.apps.googleusercontent.com"
+
+  useEffect(() => {
+    if (!document.getElementById("google-gsi-script")) {
+      const script = document.createElement("script")
+      script.id = "google-gsi-script"
+      script.src = "https://accounts.google.com/gsi/client"
+      script.async = true
+      script.defer = true
+      script.onload = () => {
+        if ((window as any).google?.accounts?.id) {
+          (window as any).google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: async (response: any) => {
+              if (response.credential) {
+                setActiveRequest("google")
+                setStatus("Đang xác thực tài khoản Google...")
+                try {
+                  const result = await authApi.loginWithGoogle(response.credential)
+                  if (result.ok) {
+                    setStatus("Đăng nhập Google thành công!")
+                    onAuthenticated(result.user)
+                  } else {
+                    setStatus(result.message)
+                  }
+                } finally {
+                  setActiveRequest(null)
+                }
+              }
+            },
+          })
+        }
+      }
+      document.body.appendChild(script)
+    }
+  }, [googleClientId, onAuthenticated])
+
   const currentValidation = () => {
+    if (view === "sign-in") return validateSignIn(values)
     if (view === "sign-up") return validateSignUp(values)
-    if (view === "recovery") return validatePasswordReset(values)
-    return validateSignIn(values)
+    return validatePasswordReset(values)
   }
 
   const switchView = (nextView: AuthView) => {
@@ -111,16 +145,6 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
     setResetSent(false)
   }
 
-  const validateTouchedField = (name: FieldName) => {
-    const nextErrors = currentValidation()
-    setErrors((current) => ({ ...current, [name]: nextErrors[name] }))
-  }
-
-  const handleBlur = (name: FieldName) => {
-    setTouched((current) => ({ ...current, [name]: true }))
-    validateTouchedField(name)
-  }
-
   const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     const name = event.target.name as FieldName
     const nextValues = { ...values, [name]: event.target.value }
@@ -128,11 +152,11 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
 
     if (touched[name]) {
       const nextErrors =
-        view === "sign-up"
-          ? validateSignUp(nextValues)
-          : view === "recovery"
-            ? validatePasswordReset(nextValues)
-            : validateSignIn(nextValues)
+        view === "sign-in"
+          ? validateSignIn(nextValues)
+          : view === "sign-up"
+            ? validateSignUp(nextValues)
+            : validatePasswordReset(nextValues)
       setErrors((current) => ({ ...current, [name]: nextErrors[name] }))
     }
 
@@ -156,6 +180,15 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
         termsAccepted: nextErrors.termsAccepted,
       }))
     }
+  }
+
+  const handleBlur = (name: FieldName) => {
+    setTouched((current) => ({ ...current, [name]: true }))
+    const nextErrors = currentValidation()
+    setErrors((current) => ({
+      ...current,
+      [name]: nextErrors[name],
+    }))
   }
 
   const focusFirstInvalidField = (nextErrors: FieldErrors) => {
@@ -185,39 +218,47 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
     setActiveRequest("form")
     setStatus(
       view === "recovery"
-        ? "Đang mô phỏng gửi hướng dẫn khôi phục…"
-        : "Đang xác thực bằng dịch vụ mô phỏng…",
+        ? "Đang gửi hướng dẫn khôi phục…"
+        : view === "sign-up"
+          ? "Đang đăng ký tài khoản..."
+          : "Đang kiểm tra thông tin đăng nhập…",
     )
 
     try {
       if (view === "sign-up") {
-        const result = await signUp(values)
+        const result = await authApi.register({
+          email: values.email,
+          username: values.fullName,
+          password: values.password,
+        })
         if (result.ok) {
-          setStatus("Tạo tài khoản mô phỏng thành công.")
+          setStatus("Đăng ký tài khoản thành công!")
           onAuthenticated(result.user)
         } else {
           setStatus(result.message)
+          if (result.field) {
+            setErrors((prev) => ({
+              ...prev,
+              [result.field!]: result.message,
+            }))
+            fieldRefs.current[result.field!]?.focus()
+          }
         }
         return
       }
 
       if (view === "recovery") {
-        const result = await requestPasswordReset({ email: values.email })
-        if (result.ok) {
-          setResetSent(true)
-          setStatus("Đã mô phỏng gửi hướng dẫn khôi phục vào email của bạn.")
-        } else {
-          setStatus(result.message)
-        }
+        setResetSent(true)
+        setStatus("Nếu email tồn tại, hướng dẫn khôi phục mật khẩu đã được gửi.")
         return
       }
 
-      const result = await signIn({
+      const result = await authApi.login({
         email: values.email,
         password: values.password,
       })
       if (result.ok) {
-        setStatus("Đăng nhập mô phỏng thành công.")
+        setStatus("Đăng nhập thành công!")
         onAuthenticated(result.user)
       } else {
         setStatus(result.message)
@@ -229,16 +270,21 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
 
   const handleGoogleSignIn = async () => {
     setActiveRequest("google")
-    setStatus("Đang mở bản mô phỏng đăng nhập Google…")
+    setStatus("Đang kết nối đến Google...")
 
     try {
-      const result = await signInWithGoogle()
-      if (result.ok) {
-        setStatus("Đăng nhập Google mô phỏng thành công.")
-        onAuthenticated(result.user)
+      if ((window as any).google?.accounts?.id) {
+        (window as any).google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            console.log("Google One Tap prompt skipped or not displayed")
+          }
+        })
       } else {
-        setStatus(result.message)
+        setStatus("Dịch vụ Google Sign-In đang tải, vui lòng bấm lại sau 2 giây.")
       }
+    } catch (err: any) {
+      console.error(err)
+      setStatus("Không thể mở cửa sổ đăng nhập Google.")
     } finally {
       setActiveRequest(null)
     }
@@ -261,16 +307,16 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
         </div>
 
         <div className="my-auto max-w-2xl py-16">
-          <p className="editorial-kicker mb-6">Định hướng nghề nghiệp, rõ ràng hơn</p>
+          <p className="editorial-kicker mb-6">Nền tảng tuyển dụng & phát triển sự nghiệp</p>
           <h1
-            className="editorial-title max-w-[12ch]"
+            className="editorial-title max-w-[14ch]"
             id="auth-narrative-title"
           >
-            Biến tín hiệu nghề nghiệp thành bước tiến có chủ đích.
+            Kết nối tài năng với cơ hội việc làm lý tưởng.
           </h1>
           <p className="mt-8 max-w-xl text-base leading-7 text-muted-ink xl:text-lg xl:leading-8">
-            Tập trung hồ sơ, cơ hội và quyết định tiếp theo trong một không gian
-            làm việc biên tập dành riêng cho hành trình của bạn.
+            Tìm kiếm công việc mơ ước, tối ưu hóa hồ sơ năng lực và kết nối trực tiếp
+            với các doanh nghiệp hàng đầu cùng JobMatch Studio.
           </p>
         </div>
 
@@ -344,12 +390,47 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                 </h2>
                 <p className="mt-4 text-base leading-7 text-muted-ink">
                   {view === "sign-in"
-                    ? "Đăng nhập để tiếp tục xây dựng hành trình nghề nghiệp có chủ đích."
+                    ? "Đăng nhập để tiếp tục xây dựng hành trình nghề nghiệp của bạn."
                     : view === "sign-up"
-                      ? "Tạo hồ sơ mô phỏng để khám phá không gian làm việc của LJOBS."
-                      : "Nhập email và chúng tôi sẽ mô phỏng gửi hướng dẫn đặt lại mật khẩu."}
+                      ? "Tạo tài khoản để khám phá hàng ngàn cơ hội việc làm hấp dẫn."
+                      : "Nhập email để nhận hướng dẫn đặt lại mật khẩu cho tài khoản của bạn."}
                 </p>
               </header>
+
+              {status && !isFormLoading && !isGoogleLoading ? (
+                <div
+                  role="alert"
+                  className={`mb-5 flex items-start gap-3 rounded-[3px] border p-3.5 text-sm transition-all duration-200 ${status.includes("thành công")
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : "border-red-200 bg-red-50 text-red-800"
+                    }`}
+                >
+                  <svg
+                    className={`mt-0.5 size-5 shrink-0 ${status.includes("thành công") ? "text-emerald-600" : "text-red-600"
+                      }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    {status.includes("thành công") ? (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    ) : (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    )}
+                  </svg>
+                  <div className="flex-1 font-medium leading-5">{status}</div>
+                </div>
+              ) : null}
 
               <form className="space-y-5" noValidate onSubmit={handleSubmit}>
                 {view === "sign-up" ? (
@@ -398,7 +479,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                     name="password"
                     onBlur={() => handleBlur("password")}
                     onChange={handleTextChange}
-                    placeholder="Ít nhất 8 ký tự"
+                    placeholder={view === "sign-up" ? "Từ 6 đến 12 ký tự" : "Nhập mật khẩu"}
                     type="password"
                     value={values.password}
                   />
@@ -438,8 +519,8 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                           type="checkbox"
                         />
                         <span>
-                          Tôi đồng ý với điều khoản sử dụng và xác nhận đây là trải
-                          nghiệm giao diện mô phỏng.
+                          Tôi đồng ý với các điều khoản sử dụng và chính sách bảo mật
+                          của JobMatch.
                         </span>
                       </label>
                       {errors.termsAccepted ? (
@@ -498,11 +579,8 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                     type="button"
                   >
                     <GoogleIcon className="size-5 shrink-0" />
-                    {isGoogleLoading ? "Đang kết nối mô phỏng…" : "Tiếp tục với Google"}
+                    {isGoogleLoading ? "Đang kết nối Google…" : "Tiếp tục với Google"}
                   </button>
-                  <p className="mt-3 text-center text-xs leading-5 text-muted-ink">
-                    Bản mô phỏng giao diện — chưa kết nối Google OAuth.
-                  </p>
                 </div>
               ) : null}
 

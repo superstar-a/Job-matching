@@ -1,16 +1,19 @@
 import { useEffect, useRef } from "react"
 import type { Screen } from "../types"
+import { authApi } from "../api/authApi"
 
 interface SettingsModalProps {
   isOpen: boolean
   onClose: () => void
   onNavigate: (screen: Screen) => void
+  onLogout?: () => void
 }
 
 export default function SettingsModal({
   isOpen,
   onClose,
   onNavigate,
+  onLogout,
 }: SettingsModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
 
@@ -28,9 +31,14 @@ export default function SettingsModal({
 
   if (!isOpen) return null
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     onClose()
-    onNavigate("auth")
+    if (onLogout) {
+      onLogout()
+    } else {
+      await authApi.logout()
+      onNavigate("auth")
+    }
   }
 
   return (

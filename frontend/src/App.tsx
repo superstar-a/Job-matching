@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Sidebar from "./components/Sidebar"
 import AuthGate from "./screens/AuthGate"
 import CVUpload from "./screens/CVUpload"
@@ -21,20 +21,35 @@ import AdminDashboard from "./screens/admin/AdminDashboard"
 import type { Screen, Job, CVVersion, IAMUser, Role, Permission, AdminIAMSubScreen, AdminTab } from "./types"
 import { CV_CONTENT, JOBS } from "./data"
 import { INITIAL_IAM_USERS, INITIAL_ROLES, INITIAL_PERMISSIONS } from "./iamData"
+import { authApi, type AuthenticatedUser } from "./api/authApi"
+import { iamApi } from "./api/iamApi"
 
 type ReturnOrigin = "copilot" | "explore" | "matched-jobs" | "saved"
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(() => authApi.getUserFromToken())
+
   const isInitialAdmin = () => {
     if (typeof window === "undefined") return false
+    const session = authApi.getUserFromToken()
+    
     const hash = window.location.hash.toLowerCase()
     const search = window.location.search.toLowerCase()
     const pathname = window.location.pathname.toLowerCase()
-    return (
+    const isAdminRoute =
       hash.includes("admin") ||
       search.includes("admin") ||
       pathname.includes("/admin")
-    )
+      
+    if (session?.role === "User") {
+      if (isAdminRoute) {
+        window.location.hash = ""
+      }
+      return false
+    }
+
+    if (session?.role === "Admin") return true
+    return isAdminRoute
   }
 
   const [isAdminPortal, setIsAdminPortal] = useState(isInitialAdmin)
@@ -52,17 +67,62 @@ export default function App() {
   const [adminSubScreen, setAdminSubScreen] = useState<AdminIAMSubScreen>("users-list")
   const [selectedIAMUser, setSelectedIAMUser] = useState<IAMUser | null>(null)
 
+  // Load live IAM data when user is Admin
+  useEffect(() => {
+    if (currentUser?.role === "Admin" || isAdminPortal) {
+      iamApi.getRoles().then((roles) => {
+        if (roles.length > 0) setIamRoles(roles)
+      }).catch(() => {})
+
+      iamApi.getPermissions().then((perms) => {
+        if (perms.length > 0) setIamPermissions(perms)
+      }).catch(() => {})
+
+      iamApi.getUsers().then((users) => {
+        if (users.length > 0) setIamUsers(users)
+      }).catch(() => {})
+    }
+  }, [currentUser, isAdminPortal])
+
+  const handleAuthenticated = (user: AuthenticatedUser) => {
+    setCurrentUser(user)
+    if (user.role === "Admin") {
+      setIsAdminPortal(true)
+      window.location.hash = "#admin"
+      setAdminTab("users")
+      setAdminSubScreen("users-list")
+    } else {
+      setIsAdminPortal(false)
+      setScreen("copilot")
+      window.location.hash = ""
+    }
+  }
+
+  const handleLogout = async () => {
+    await authApi.logout()
+    setCurrentUser(null)
+    setIsAdminPortal(false)
+    window.location.hash = ""
+  }
+
   // Listen to URL changes for standalone routing
   useEffect(() => {
     const handleUrlChange = () => {
       const hash = window.location.hash.toLowerCase()
       const search = window.location.search.toLowerCase()
       const pathname = window.location.pathname.toLowerCase()
-      setIsAdminPortal(
+      const isAdminRoute =
         hash.includes("admin") ||
-          search.includes("admin") ||
-          pathname.includes("/admin"),
-      )
+        search.includes("admin") ||
+        pathname.includes("/admin")
+
+      if (currentUser?.role === "User" && isAdminRoute) {
+        // Prevent normal users from accessing admin routes
+        setIsAdminPortal(false)
+        window.location.hash = ""
+      } else {
+        setIsAdminPortal(isAdminRoute)
+      }
     }
 
     window.addEventListener("hashchange", handleUrlChange)
@@ -71,7 +131,7 @@ export default function App() {
       window.removeEventListener("hashchange", handleUrlChange)
       window.removeEventListener("popstate", handleUrlChange)
     }
-  }, [])
+  }, [currentUser])
 
   const [cvVersions, setCvVersions] = useState<CVVersion[]>([
     {
@@ -209,6 +269,8 @@ export default function App() {
         roleCount={iamRoles.length}
         permissionCount={iamPermissions.length}
         breadcrumbs={breadcrumbs}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       >
         {/* Tab 1: Dashboard */}
         {adminTab === "dashboard" && (
@@ -235,8 +297,11 @@ export default function App() {
                   setSelectedIAMUser(u)
                   setAdminSubScreen("user-detail")
                 }}
-                onDeleteUsers={(deletedIds) => {
+                onDeleteUsers={async (deletedIds) => {
                   setIamUsers((prev) => prev.filter((u) => !deletedIds.includes(u.id)))
+                  for (const id of deletedIds) {
+                    try { await iamApi.deleteUser(id) } catch {}
+                  }
                 }}
               />
             )}
@@ -246,9 +311,15 @@ export default function App() {
                 roles={rolesWithUserCounts}
                 permissions={iamPermissions}
                 onCancel={() => setAdminSubScreen("users-list")}
-                onCreateUser={(newUser) => {
+                onCreateUser={async (newUser) => {
                   setIamUsers((prev) => [newUser, ...prev])
                   setAdminSubScreen("users-list")
+                  try {
+                    await iamApi.createUser({
+                      email: newUser.email,
+                      username: newUser.name,
+                    })
+                  } catch {}
                 }}
               />
             )}
@@ -262,11 +333,18 @@ export default function App() {
                   setSelectedIAMUser(null)
                   setAdminSubScreen("users-list")
                 }}
-                onUpdateUser={(updatedUser) => {
+                onUpdateUser={async (updatedUser) => {
                   setSelectedIAMUser(updatedUser)
                   setIamUsers((prev) =>
                     prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)),
                   )
+                  try {
+                    await iamApi.updateUser(updatedUser.id, {
+                      email: updatedUser.email,
+                      username: updatedUser.name,
+                      status: updatedUser.status,
+                    })
+                  } catch {}
                 }}
               />
             )}
@@ -280,9 +358,16 @@ export default function App() {
               <AdminCreateRoleWizard
                 permissions={iamPermissions}
                 onCancel={() => setAdminSubScreen("roles-list")}
-                onCreateRole={(newRole) => {
+                onCreateRole={async (newRole) => {
                   setIamRoles((prev) => [...prev, newRole])
                   setAdminSubScreen("roles-list")
+                  try {
+                    await iamApi.createRole({
+                      name: newRole.name,
+                      description: newRole.description,
+                      permissionIds: newRole.permissionIds,
+                    })
+                  } catch {}
                 }}
               />
             ) : (
@@ -290,8 +375,9 @@ export default function App() {
                 roles={rolesWithUserCounts}
                 permissions={iamPermissions}
                 onCreateRole={() => setAdminSubScreen("create-role")}
-                onDeleteRole={(roleId) => {
+                onDeleteRole={async (roleId) => {
                   setIamRoles((prev) => prev.filter((r) => r.id !== roleId))
+                  try { await iamApi.deleteRole(roleId) } catch {}
                 }}
               />
             )}
@@ -302,16 +388,29 @@ export default function App() {
         {adminTab === "permissions" && (
           <AdminPermissionsList
             permissions={iamPermissions}
-            onCreatePermission={(newPerm) => {
+            onCreatePermission={async (newPerm) => {
               setIamPermissions((prev) => [...prev, newPerm])
+              try {
+                await iamApi.createPermission({
+                  name: newPerm.name,
+                  description: newPerm.description,
+                })
+              } catch {}
             }}
-            onUpdatePermission={(updatedPerm) => {
+            onUpdatePermission={async (updatedPerm) => {
               setIamPermissions((prev) =>
                 prev.map((p) => (p.id === updatedPerm.id ? updatedPerm : p)),
               )
+              try {
+                await iamApi.updatePermission(updatedPerm.id, {
+                  name: updatedPerm.name,
+                  description: updatedPerm.description,
+                })
+              } catch {}
             }}
-            onDeletePermission={(permId) => {
+            onDeletePermission={async (permId) => {
               setIamPermissions((prev) => prev.filter((p) => p.id !== permId))
+              try { await iamApi.deletePermission(permId) } catch {}
             }}
           />
         )}
@@ -319,9 +418,9 @@ export default function App() {
     )
   }
 
-  // ================= STANDALONE USER APP =================
-  if (screen === "auth") {
-    return <AuthGate onAuthenticated={() => navigate("copilot")} />
+  // ================= AUTH GATE (UNAUTHENTICATED) =================
+  if (!currentUser || screen === "auth") {
+    return <AuthGate onAuthenticated={handleAuthenticated} />
   }
 
   return (
@@ -332,6 +431,8 @@ export default function App() {
         isCollapsed={isSidebarCollapsed}
         onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
         isCvUploaded={isCvUploaded}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       <main className="flex min-w-0 flex-1 flex-col h-full overflow-hidden">
