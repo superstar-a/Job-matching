@@ -45,11 +45,10 @@ function Field({ error, inputRef, label, name, ...inputProps }: FieldProps) {
         {...inputProps}
         aria-describedby={error ? errorId : undefined}
         aria-invalid={Boolean(error)}
-        className={`${inputClassName} ${
-          error
+        className={`${inputClassName} ${error
             ? "border-red-500"
             : "border-rule hover:border-muted-ink/70"
-        }`}
+          }`}
         id={name}
         name={name}
         ref={inputRef}
@@ -401,16 +400,14 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
               {status && !isFormLoading && !isGoogleLoading ? (
                 <div
                   role="alert"
-                  className={`mb-5 flex items-start gap-3 rounded-[3px] border p-3.5 text-sm transition-all duration-200 ${
-                    status.includes("thành công")
+                  className={`mb-5 flex items-start gap-3 rounded-[3px] border p-3.5 text-sm transition-all duration-200 ${status.includes("thành công")
                       ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                       : "border-red-200 bg-red-50 text-red-800"
-                  }`}
+                    }`}
                 >
                   <svg
-                    className={`mt-0.5 size-5 shrink-0 ${
-                      status.includes("thành công") ? "text-emerald-600" : "text-red-600"
-                    }`}
+                    className={`mt-0.5 size-5 shrink-0 ${status.includes("thành công") ? "text-emerald-600" : "text-red-600"
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
