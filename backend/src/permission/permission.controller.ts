@@ -11,31 +11,35 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 @ApiBearerAuth()
 @Controller('permission')
 @UseGuards(AuthGuard, RolesGuard)
-@Roles('Admin')
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) { }
 
   @Post()
+  @Roles('Admin')
   create(@Body(ValidationPipe) createPermissionDto: CreatePermissionDto) {
     return this.permissionService.create(createPermissionDto);
   }
 
   @Get()
+  @Roles('Admin', 'User')
   findAll() {
     return this.permissionService.findAll();
   }
 
   @Get(':id')
+  @Roles('Admin', 'User')
   findOne(@Param('id') id: string) {
     return this.permissionService.findOne(+id);
   }
 
   @Patch(':id')
+  @Roles('Admin')
   update(@Param('id') id: string, @Body(ValidationPipe) updatePermissionDto: UpdatePermissionDto) {
     return this.permissionService.update(+id, updatePermissionDto);
   }
 
   @Delete(':id')
+  @Roles('Admin')
   remove(@Param('id') id: string) {
     return this.permissionService.remove(+id);
   }

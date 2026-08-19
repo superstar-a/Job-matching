@@ -11,11 +11,11 @@ import { Roles } from '../auth/decorators/roles.decorator';
 @ApiBearerAuth()
 @Controller('roles')
 @UseGuards(AuthGuard, RolesGuard)
-@Roles('Admin') 
 export class RolesController {
   constructor(private readonly rolesService: RolesService) { }
 
   @Post()
+  @Roles('Admin') 
   @ApiOperation({ summary: 'Create a role' })
   @ApiResponse({ status: 201, description: 'The role has been successfully created.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
@@ -24,21 +24,25 @@ export class RolesController {
   }
 
   @Get()
+  @Roles('Admin', 'User')
   findAll() {
     return this.rolesService.findAll();
   }
 
   @Get(':id')
+  @Roles('Admin', 'User')
   findOne(@Param('id') id: string) {
     return this.rolesService.findOne(+id);
   }
 
   @Patch(':id')
+  @Roles('Admin')
   update(@Param('id') id: string, @Body(ValidationPipe) updateRoleDto: UpdateRoleDto) {
     return this.rolesService.update(+id, updateRoleDto);
   }
 
   @Delete(':id')
+  @Roles('Admin')
   remove(@Param('id') id: string) {
     return this.rolesService.remove(+id);
   }
