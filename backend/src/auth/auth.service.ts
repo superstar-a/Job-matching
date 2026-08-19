@@ -114,8 +114,8 @@ export class AuthService {
           userRoles: {
             create: {
               role: {
-                create: {
-                  roleName: 'User'
+                connect: {
+                  roleID: 2
                 }
               },
             },
@@ -236,8 +236,8 @@ export class AuthService {
           userRoles: {
             create: {
               role: {
-                create: {
-                  roleName: 'User',
+                connect: {
+                  roleID: 2,
                 },
               },
             },
