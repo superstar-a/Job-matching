@@ -9,12 +9,12 @@ import type { Role, Permission, IAMUser } from "../types"
 const BASE_URL = "" // Uses Vite Proxy
 
 function getAuthHeaders() {
-  const session = authApi.getCurrentUser()
+  const token = authApi.getAccessToken()
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   }
-  if (session?.accessToken) {
-    headers["Authorization"] = `Bearer ${session.accessToken}`
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`
   }
   return headers
 }

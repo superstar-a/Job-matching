@@ -1,21 +1,15 @@
 /**
  * Authentication API Client for JobMatch Platform
- * Connects directly to NestJS Backend (/auth/login, /auth/register, /auth/google)
+ * Uses JWT AccessToken decoding to manage authentication state and user session.
  */
 
-export interface BackendUser {
-  userID: string
+export interface JwtPayload {
+  sub: string // UserID (UUID)
   email: string
   username: string
-  accountStatus: string
-  createdAt?: string
-  updatedAt?: string
-}
-
-export interface AuthResponse {
-  user: BackendUser
-  accessToken: string
-  refreshToken: string
+  sessionID?: string // Session ID generated on login
+  iat?: number
+  exp?: number
 }
 
 export interface AuthenticatedUser {
@@ -23,6 +17,7 @@ export interface AuthenticatedUser {
   name: string
   email: string
   username: string
+  sessionID?: string
   role: "Admin" | "User"
   accessToken: string
   refreshToken?: string
@@ -43,12 +38,36 @@ export interface GoogleLoginPayload {
   idToken: string
 }
 
-const STORAGE_KEY = "jobmatch_auth_session"
+const ACCESS_TOKEN_KEY = "jobmatch_access_token"
+const REFRESH_TOKEN_KEY = "jobmatch_refresh_token"
 const BASE_URL = "" // Uses Vite proxy (/auth, /roles, /users, /permission)
 
 /**
- * Determine if the authenticated token belongs to an Admin or User
- * Probes POST /roles which is guarded exclusively by @Roles('Admin')
+ * Decode JWT Base64 payload in browser without external libraries
+ */
+export function decodeJwt(token: string): JwtPayload | null {
+  try {
+    if (!token || typeof token !== "string") return null
+    const parts = token.split(".")
+    if (parts.length !== 3) return null
+
+    const base64Url = parts[1]
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(""),
+    )
+    return JSON.parse(jsonPayload) as JwtPayload
+  } catch (err) {
+    console.error("Failed to decode JWT token:", err)
+    return null
+  }
+}
+
+/**
+ * Determine if user has Admin role based on email or token
  */
 async function resolveUserRole(accessToken: string, email: string): Promise<"Admin" | "User"> {
   if (email.toLowerCase().includes("admin")) {
@@ -65,12 +84,10 @@ async function resolveUserRole(accessToken: string, email: string): Promise<"Adm
       body: JSON.stringify({}),
     })
 
-    // If 403 Forbidden -> User does NOT have Admin role
     if (res.status === 403) {
       return "User"
     }
 
-    // If 400 or 201 -> Role check passed (Admin)
     if (res.status === 400 || res.status === 201) {
       return "Admin"
     }
@@ -83,9 +100,79 @@ async function resolveUserRole(accessToken: string, email: string): Promise<"Adm
 
 export const authApi = {
   /**
+   * Decode access token stored in localStorage and extract authenticated user info
+   */
+  getUserFromToken(): AuthenticatedUser | null {
+    try {
+      const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
+      if (!accessToken) return null
+
+      const payload = decodeJwt(accessToken)
+      if (!payload) {
+        this.clearTokens()
+        return null
+      }
+
+      // Check token expiration if exp exists
+      if (payload.exp && Date.now() >= payload.exp * 1000) {
+        console.warn("Access token has expired.")
+        this.clearTokens()
+        return null
+      }
+
+      const role: "Admin" | "User" =
+        payload.email?.toLowerCase().includes("admin") ||
+        payload.username?.toLowerCase().includes("admin")
+          ? "Admin"
+          : "User"
+
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY) || undefined
+
+      return {
+        id: payload.sub,
+        name: payload.username || payload.email.split("@")[0],
+        email: payload.email,
+        username: payload.username,
+        sessionID: payload.sessionID,
+        role,
+        accessToken,
+        refreshToken,
+      }
+    } catch (err) {
+      console.error("Error extracting user from token:", err)
+      return null
+    }
+  },
+
+  /**
+   * Alias for getUserFromToken
+   */
+  getCurrentUser(): AuthenticatedUser | null {
+    return this.getUserFromToken()
+  },
+
+  /**
+   * Get raw access token string for API requests
+   */
+  getAccessToken(): string | null {
+    return localStorage.getItem(ACCESS_TOKEN_KEY)
+  },
+
+  /**
+   * Clear all stored authentication tokens
+   */
+  clearTokens(): void {
+    localStorage.removeItem(ACCESS_TOKEN_KEY)
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
+    localStorage.removeItem("jobmatch_auth_session") // Clean up legacy key
+  },
+
+  /**
    * Log in with Email and Password
    */
-  async login(payload: LoginPayload): Promise<{ ok: true; user: AuthenticatedUser } | { ok: false; message: string }> {
+  async login(
+    payload: LoginPayload,
+  ): Promise<{ ok: true; user: AuthenticatedUser } | { ok: false; message: string }> {
     try {
       const response = await fetch(`${BASE_URL}/auth/login`, {
         method: "POST",
@@ -109,20 +196,28 @@ export const authApi = {
         return { ok: false, message: msg }
       }
 
-      const role = await resolveUserRole(data.accessToken, data.user.email)
+      // Store tokens
+      if (data.accessToken) {
+        localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken)
+      }
+      if (data.refreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken)
+      }
+
+      // Decode token to build authenticated user
+      const decodedPayload = decodeJwt(data.accessToken)
+      const role = await resolveUserRole(data.accessToken, decodedPayload?.email || data.user?.email)
 
       const authenticatedUser: AuthenticatedUser = {
-        id: data.user.userID,
-        name: data.user.username || data.user.email.split("@")[0],
-        email: data.user.email,
-        username: data.user.username,
+        id: decodedPayload?.sub || data.user?.userID,
+        name: decodedPayload?.username || data.user?.username || payload.email.split("@")[0],
+        email: decodedPayload?.email || data.user?.email || payload.email,
+        username: decodedPayload?.username || data.user?.username,
+        sessionID: decodedPayload?.sessionID,
         role,
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       }
-
-      // Persist session
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(authenticatedUser))
 
       return { ok: true, user: authenticatedUser }
     } catch (error: any) {
@@ -137,10 +232,13 @@ export const authApi = {
   /**
    * Register a new user
    */
-  async register(payload: RegisterPayload): Promise<{ ok: true; user: AuthenticatedUser } | { ok: false; message: string; field?: "fullName" | "email" }> {
+  async register(
+    payload: RegisterPayload,
+  ): Promise<{ ok: true; user: AuthenticatedUser } | { ok: false; message: string; field?: "fullName" | "email" }> {
     try {
       // Backend RegisterDto username must not contain spaces
-      const formattedUsername = payload.username.trim().replace(/\s+/g, "_") || payload.email.split("@")[0]
+      const formattedUsername =
+        payload.username.trim().replace(/\s+/g, "_") || payload.email.split("@")[0]
 
       const response = await fetch(`${BASE_URL}/auth/register`, {
         method: "POST",
@@ -177,17 +275,27 @@ export const authApi = {
         return { ok: false, message: msg, field }
       }
 
+      // Store tokens
+      if (data.accessToken) {
+        localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken)
+      }
+      if (data.refreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken)
+      }
+
+      // Decode token to build authenticated user
+      const decodedPayload = decodeJwt(data.accessToken)
+
       const authenticatedUser: AuthenticatedUser = {
-        id: data.user.userID,
-        name: data.user.username || payload.username,
-        email: data.user.email,
-        username: data.user.username,
+        id: decodedPayload?.sub || data.user?.userID,
+        name: decodedPayload?.username || data.user?.username || payload.username,
+        email: decodedPayload?.email || data.user?.email || payload.email,
+        username: decodedPayload?.username || data.user?.username,
+        sessionID: decodedPayload?.sessionID,
         role: "User", // New registrations are User role
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       }
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(authenticatedUser))
 
       return { ok: true, user: authenticatedUser }
     } catch (error: any) {
@@ -202,7 +310,9 @@ export const authApi = {
   /**
    * Google OAuth2 Login
    */
-  async loginWithGoogle(idToken: string): Promise<{ ok: true; user: AuthenticatedUser } | { ok: false; message: string }> {
+  async loginWithGoogle(
+    idToken: string,
+  ): Promise<{ ok: true; user: AuthenticatedUser } | { ok: false; message: string }> {
     try {
       const response = await fetch(`${BASE_URL}/auth/google`, {
         method: "POST",
@@ -220,17 +330,27 @@ export const authApi = {
         return { ok: false, message: msg }
       }
 
+      // Store tokens
+      if (data.accessToken) {
+        localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken)
+      }
+      if (data.refreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken)
+      }
+
+      // Decode token to build authenticated user
+      const decodedPayload = decodeJwt(data.accessToken)
+
       const authenticatedUser: AuthenticatedUser = {
-        id: data.user.userID,
-        name: data.user.username || data.user.email.split("@")[0],
-        email: data.user.email,
-        username: data.user.username,
-        role: "User", // Đăng nhập Google luôn mặc định là role User
+        id: decodedPayload?.sub || data.user?.userID,
+        name: decodedPayload?.username || data.user?.username || data.user?.email.split("@")[0],
+        email: decodedPayload?.email || data.user?.email,
+        username: decodedPayload?.username || data.user?.username,
+        sessionID: decodedPayload?.sessionID,
+        role: "User",
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       }
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(authenticatedUser))
 
       return { ok: true, user: authenticatedUser }
     } catch (error: any) {
@@ -243,22 +363,27 @@ export const authApi = {
   },
 
   /**
-   * Get current stored session
+   * Sign out and clear stored session (Calls Backend POST /auth/logout)
    */
-  getCurrentUser(): AuthenticatedUser | null {
+  async logout(): Promise<void> {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return null
-      return JSON.parse(raw) as AuthenticatedUser
-    } catch {
-      return null
-    }
-  },
+      const accessToken = this.getAccessToken()
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      }
+      if (accessToken) {
+        headers["Authorization"] = `Bearer ${accessToken}`
+      }
 
-  /**
-   * Sign out and clear stored session
-   */
-  logout(): void {
-    localStorage.removeItem(STORAGE_KEY)
+      await fetch(`${BASE_URL}/auth/logout`, {
+        method: "POST",
+        headers,
+        credentials: "include", // Send and clear httpOnly cookies
+      })
+    } catch (error) {
+      console.error("Logout API error:", error)
+    } finally {
+      this.clearTokens()
+    }
   },
 }

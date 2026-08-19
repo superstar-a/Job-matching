@@ -27,11 +27,11 @@ import { iamApi } from "./api/iamApi"
 type ReturnOrigin = "copilot" | "explore" | "matched-jobs" | "saved"
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(() => authApi.getCurrentUser())
+  const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(() => authApi.getUserFromToken())
 
   const isInitialAdmin = () => {
     if (typeof window === "undefined") return false
-    const session = authApi.getCurrentUser()
+    const session = authApi.getUserFromToken()
     
     const hash = window.location.hash.toLowerCase()
     const search = window.location.search.toLowerCase()
@@ -98,8 +98,8 @@ export default function App() {
     }
   }
 
-  const handleLogout = () => {
-    authApi.logout()
+  const handleLogout = async () => {
+    await authApi.logout()
     setCurrentUser(null)
     setIsAdminPortal(false)
     window.location.hash = ""
