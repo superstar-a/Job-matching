@@ -72,6 +72,11 @@ export async function dbInit(): Promise<void> {
       stdio: 'inherit',
     });
 
+    execSync('npx ts-node prisma/dataset.ts', {
+      cwd: backendRoot,
+      stdio: 'inherit',
+    });
+
     console.log('\n✅ Database schema initialized successfully.\n');
   } catch (error: any) {
     console.error(`\n❌ Failed to initialize database: ${error.message}\n`);
