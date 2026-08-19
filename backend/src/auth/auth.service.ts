@@ -108,7 +108,7 @@ export class AuthService {
             create: {
               authProvider: 'Local',
               passwordHash: hashedPassword,
-              passwordSalt: salt,
+
             },
           },
           userRoles: {
@@ -230,7 +230,7 @@ export class AuthService {
             create: {
               authProvider: 'Google',
               passwordHash: hashedPassword,
-              passwordSalt: salt,
+
             },
           },
           userRoles: {

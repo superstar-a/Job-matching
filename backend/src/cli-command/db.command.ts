@@ -57,7 +57,11 @@ export async function dbInit(): Promise<void> {
   console.log('\n🔧 Initializing database schema...');
 
   try {
-    const backendRoot = path.resolve(__dirname, '..', '..');
+    let backendRoot = path.resolve(__dirname, '..', '..');
+    if (backendRoot.endsWith('dist') || backendRoot.endsWith('dist' + path.sep)) {
+      backendRoot = path.resolve(backendRoot, '..');
+    }
+
     execSync('npx prisma generate', {
       cwd: backendRoot,
       stdio: 'inherit',
