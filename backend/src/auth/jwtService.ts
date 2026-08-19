@@ -18,4 +18,8 @@ export class JwtAuthService {
     async verifyToken(token: string): Promise<any> {
         return jwt.verify(token, this.secret);
     }
+
+    decodeToken(token: string): any {
+        return jwt.decode(token);
+    }
 }

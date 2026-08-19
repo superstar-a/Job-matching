@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt'
 import { RegisterDto } from './dto/RegisterDto';
 import { JwtAuthService } from './jwtService';
 import { OAuth2Client } from 'google-auth-library';
+import { UUID } from 'crypto';
 @Injectable()
 export class AuthService {
   private readonly googleClient: OAuth2Client;
@@ -38,10 +39,13 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
+      const sessionID = crypto.randomUUID();
+
       const jwtPayload = {
         sub: user.userID,
         email: user.email,
         username: user.username,
+        sessionID: sessionID,
       };
 
       const accessToken = await this.jwtService.generateToken(jwtPayload);
@@ -49,6 +53,7 @@ export class AuthService {
 
       await this.db.session.create({
         data: {
+          sessionID: sessionID,
           userID: user.userID,
           refreshToken: refreshToken,
           ipAddress: ipAddress || null,
@@ -65,6 +70,7 @@ export class AuthService {
           ipAddress: ipAddress || null,
         },
       })
+
       return {
         user,
         accessToken,
@@ -132,10 +138,13 @@ export class AuthService {
         },
       });
 
+      const sessionID = crypto.randomUUID();
+
       const jwtPayload = {
         sub: user.userID,
         email: user.email,
         username: user.username,
+        sessionID: sessionID,
       };
 
       const accessToken = await this.jwtService.generateToken(jwtPayload);
@@ -143,6 +152,7 @@ export class AuthService {
 
       await this.db.session.create({
         data: {
+          sessionID: sessionID,
           userID: user.userID,
           refreshToken: refreshToken,
           ipAddress: ipAddress || null,
@@ -192,10 +202,13 @@ export class AuthService {
           throw new BadRequestException('User exists with a different authentication provider');
         }
 
+        const sessionID = crypto.randomUUID();
+
         const jwtPayload = {
           sub: existingUser.userID,
           email: existingUser.email,
           username: existingUser.username,
+          sessionID: sessionID,
         };
 
         const accessToken = await this.jwtService.generateToken(jwtPayload);
@@ -203,6 +216,7 @@ export class AuthService {
 
         await this.db.session.create({
           data: {
+            sessionID: sessionID,
             userID: existingUser.userID,
             refreshToken: refreshToken,
             ipAddress: ipAddress || null,
@@ -254,10 +268,13 @@ export class AuthService {
         },
       });
 
+      const sessionID = crypto.randomUUID();
+
       const jwtPayload = {
         sub: user.userID,
         email: user.email,
         username: user.username,
+        sessionID: sessionID,
       };
 
       const accessToken = await this.jwtService.generateToken(jwtPayload);
@@ -265,6 +282,7 @@ export class AuthService {
 
       await this.db.session.create({
         data: {
+          sessionID: sessionID,
           userID: user.userID,
           refreshToken: refreshToken,
           ipAddress: ipAddress || null,
@@ -283,6 +301,29 @@ export class AuthService {
         throw error;
       }
       throw new InternalServerErrorException('Google login failed: ' + error.message);
+    }
+  }
+
+  decodeToken(token: string) {
+    return this.jwtService.decodeToken(token);
+  }
+
+  async logout(sessionID: string) {
+    try {
+      await this.db.session.delete({
+        where: {
+          sessionID: sessionID,
+        },
+      });
+
+      return {
+        message: 'User logged out successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Logout failed: ' + error.message);
     }
   }
 }
