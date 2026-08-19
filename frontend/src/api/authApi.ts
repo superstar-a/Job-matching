@@ -47,31 +47,35 @@ const STORAGE_KEY = "jobmatch_auth_session"
 const BASE_URL = "" // Uses Vite proxy (/auth, /roles, /users, /permission)
 
 /**
- * Determine if the authenticated token belongs to an Admin or User by probing GET /roles
+ * Determine if the authenticated token belongs to an Admin or User
+ * Probes POST /roles which is guarded exclusively by @Roles('Admin')
  */
 async function resolveUserRole(accessToken: string, email: string): Promise<"Admin" | "User"> {
+  if (email.toLowerCase().includes("admin")) {
+    return "Admin"
+  }
+
   try {
     const res = await fetch(`${BASE_URL}/roles`, {
-      method: "GET",
+      method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({}),
     })
 
-    if (res.status === 200) {
-      return "Admin"
-    }
-
+    // If 403 Forbidden -> User does NOT have Admin role
     if (res.status === 403) {
       return "User"
     }
+
+    // If 400 or 201 -> Role check passed (Admin)
+    if (res.status === 400 || res.status === 201) {
+      return "Admin"
+    }
   } catch (err) {
     console.warn("Could not probe /roles endpoint:", err)
-  }
-
-  // Fallback heuristic based on email
-  if (email.toLowerCase().includes("admin")) {
-    return "Admin"
   }
 
   return "User"
@@ -204,14 +208,12 @@ export const authApi = {
         return { ok: false, message: msg }
       }
 
-      const role = await resolveUserRole(data.accessToken, data.user.email)
-
       const authenticatedUser: AuthenticatedUser = {
         id: data.user.userID,
         name: data.user.username || data.user.email.split("@")[0],
         email: data.user.email,
         username: data.user.username,
-        role,
+        role: "User", // Đăng nhập Google luôn mặc định là role User
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       }
