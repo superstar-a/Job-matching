@@ -1,0 +1,82 @@
+[
+  {
+    "sample_id": "explain-cv-backend-vs-python-fastapi",
+    "analysis": {
+      "overall_score": 82.5,
+      "matched_skills": ["Python", "FastAPI", "SQL"],
+      "missing_required_skills": ["Docker"],
+      "nice_to_have_skills": ["AWS", "NLP"],
+      "recommendation_reason": "Strong match based on required skills and experience, but should show Docker experience more clearly.",
+      "improvement_focus": ["Docker"],
+      "analyzer_version": "rule-based-gap-v1",
+      "fit_gaps": [
+        {
+          "category": "skill",
+          "status": "match",
+          "severity": "low",
+          "requirement": "Python",
+          "message": "Python is present in both parsed CV skills and JD required skills.",
+          "evidence": [
+            {
+              "source": "cv",
+              "section": "skills",
+              "field": "skills",
+              "text": "Python"
+            },
+            {
+              "source": "jd",
+              "section": "requirements",
+              "field": "required_skills",
+              "text": "Python"
+            }
+          ]
+        },
+        {
+          "category": "skill",
+          "status": "gap",
+          "severity": "high",
+          "requirement": "Docker",
+          "message": "JD requires Docker but the parsed CV has no verified Docker evidence.",
+          "evidence": [
+            {
+              "source": "jd",
+              "section": "requirements",
+              "field": "required_skills",
+              "text": "Docker"
+            }
+          ],
+          "guardrail": "Ask the candidate to add Docker only if they truly have it; do not add it as verified experience."
+        }
+      ]
+    },
+    "suggestions": {
+      "overall_score": 82.5,
+      "blocked_claims": ["Docker"],
+      "source_analysis_version": "rule-based-gap-v1",
+      "suggestion_version": "rule-based-suggestion-v1",
+      "suggestions": [
+        {
+          "section": "skills",
+          "action": "add_if_true",
+          "title": "Clarify Docker only if true",
+          "current_gap": "JD requires Docker but the parsed CV has no verified Docker evidence.",
+          "suggested_wording": "Only if you have real Docker experience, add Docker under Skills and mention the project, role, or task where you used it.",
+          "rationale": "Docker is a required skill in the JD and is currently missing from parsed CV evidence.",
+          "evidence": [
+            {
+              "source": "jd",
+              "section": "requirements",
+              "field": "required_skills",
+              "text": "Docker"
+            }
+          ],
+          "guardrail": {
+            "code": "requires_verified_experience",
+            "severity": "blocker",
+            "message": "Do not claim Docker experience unless the candidate truly has it."
+          }
+        }
+      ]
+    }
+  }
+]

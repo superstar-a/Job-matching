@@ -23,6 +23,8 @@ const SKILL_KEYWORDS = [
   'NLP',
 ];
 
+const DEFAULT_SESSION_STORE = new Map();
+
 function parseJobSearchIntent(message = '') {
   const raw = String(message || '').trim();
   const normalized = normalizeText(raw);
@@ -72,30 +74,39 @@ async function handleJobAssistantChat({
   requestTimeoutMs,
   matchCv = matchCvPayload,
   logger,
+  sessionStore = DEFAULT_SESSION_STORE,
 } = {}) {
   const message = payload.message || '';
-  const parsedIntent = payload.parsed_intent || parseJobSearchIntent(message);
+  const conversationId = payload.conversation_id || payload.conversationId || randomUUID();
+  const previousSession = readSession(sessionStore, conversationId);
+  const currentIntent = payload.parsed_intent || parseJobSearchIntent(message);
+  const parsedIntent = mergeJobSearchIntent(previousSession.parsed_intent, currentIntent);
   const filteredJobs = filterJobsByIntent(jobs, parsedIntent);
   const followUpQuestions = buildFollowUpQuestions(parsedIntent, message);
-  const cvPayload = buildCvPayload(payload);
+  const cvPayload = mergeCvPayload(previousSession.cv_payload, buildCvPayload(payload));
+  const hasCvContext = hasCvPayload(cvPayload);
   const matchResponse = filteredJobs.length > 0
-    ? await matchCv({
-        payload: cvPayload,
-        jobs: filteredJobs,
-        aiServiceUrl,
-        requestTimeoutMs,
-        logger,
-      })
+    ? hasCvContext
+      ? await matchCv({
+          payload: cvPayload,
+          jobs: filteredJobs,
+          aiServiceUrl,
+          requestTimeoutMs,
+          logger,
+        })
+      : buildIntentOnlyMatchResponse(filteredJobs)
     : {
         success: true,
         source: 'no-filtered-jobs',
         recommendedJobs: [],
       };
   const rankedJobs = matchResponse.recommendedJobs || [];
+  const jobDetails = buildJobDetails(filteredJobs, rankedJobs);
+  const storableCvPayload = buildStorableCvPayload(cvPayload, matchResponse);
 
-  return {
+  const response = {
     success: true,
-    conversation_id: payload.conversation_id || payload.conversationId || randomUUID(),
+    conversation_id: conversationId,
     assistant_message: buildAssistantMessage(rankedJobs, parsedIntent),
     parsed_intent: parsedIntent,
     selected_sources: parsedIntent.job_sources || [],
@@ -109,9 +120,22 @@ async function handleJobAssistantChat({
       company_type: parsedIntent.company_type,
     },
     ranked_jobs: rankedJobs,
+    job_details: jobDetails,
     follow_up_questions: followUpQuestions,
     source: matchResponse.source || 'job-assistant',
   };
+
+  writeSession(sessionStore, conversationId, {
+    parsed_intent: parsedIntent,
+    cv_payload: storableCvPayload,
+    selected_sources: response.selected_sources,
+    filters: response.filters,
+    ranked_jobs: rankedJobs,
+    job_details: jobDetails,
+    updated_at: new Date().toISOString(),
+  });
+
+  return response;
 }
 
 function buildCvPayload(payload = {}) {
@@ -125,6 +149,140 @@ function buildCvPayload(payload = {}) {
   };
 }
 
+function readSession(sessionStore, conversationId) {
+  if (!sessionStore || typeof sessionStore.get !== 'function' || !conversationId) {
+    return {};
+  }
+  return sessionStore.get(conversationId) || {};
+}
+
+function writeSession(sessionStore, conversationId, session) {
+  if (!sessionStore || typeof sessionStore.set !== 'function' || !conversationId) {
+    return;
+  }
+  sessionStore.set(conversationId, session);
+}
+
+function mergeJobSearchIntent(previous = {}, current = {}) {
+  const scalarFields = [
+    'target_role',
+    'location',
+    'work_mode',
+    'salary_min',
+    'salary_max',
+    'currency',
+    'level',
+    'company_type',
+    'industry_domain',
+  ];
+  const merged = { ...current };
+
+  for (const field of scalarFields) {
+    merged[field] = hasValue(current[field]) ? current[field] : previous[field] ?? null;
+  }
+
+  merged.job_sources = pickCurrentOrPreviousArray(previous.job_sources, current.job_sources);
+  merged.required_skills = mergeUniqueArrays(previous.required_skills, current.required_skills);
+  merged.preferred_skills = mergeUniqueArrays(previous.preferred_skills, current.preferred_skills);
+  merged.must_have_filters = mergeUniqueArrays(previous.must_have_filters, current.must_have_filters);
+  merged.nice_to_have_filters = mergeUniqueArrays(previous.nice_to_have_filters, current.nice_to_have_filters);
+  merged.excluded_keywords = mergeUniqueArrays(previous.excluded_keywords, current.excluded_keywords);
+
+  return merged;
+}
+
+function mergeCvPayload(previous = {}, current = {}) {
+  const merged = { ...previous };
+  for (const [key, value] of Object.entries(current || {})) {
+    if (Array.isArray(value)) {
+      if (value.length > 0) merged[key] = value;
+      continue;
+    }
+    if (hasValue(value)) merged[key] = value;
+  }
+  return merged;
+}
+
+function buildJobDetails(filteredJobs = [], rankedJobs = []) {
+  const jobIndex = new Map();
+  for (const job of filteredJobs) {
+    for (const key of getJobKeys(job)) {
+      jobIndex.set(key, job);
+    }
+  }
+
+  return rankedJobs
+    .map((rankedJob) => {
+      const rankedJobId = getRankedJobId(rankedJob);
+      const sourceJob = rankedJobId ? jobIndex.get(String(rankedJobId)) : null;
+      const job = sourceJob || {};
+      const jobId = firstValue(rankedJobId, job.id, job.job_id, job.jobId);
+      const title = firstValue(rankedJob.jobTitle, rankedJob.title, job.title, job.name);
+
+      return {
+        job_id: jobId || null,
+        title: title || null,
+        company_name: firstValue(rankedJob.company, rankedJob.companyName, rankedJob.company_name, job.company, job.company_name) || null,
+        source: firstValue(rankedJob.source, job.source) || null,
+        location: firstValue(rankedJob.location, job.location) || null,
+        salary: firstValue(rankedJob.salary, job.salary) || null,
+        description: firstValue(job.description, job.description_text, rankedJob.description) || null,
+        skills: toArray(firstValue(job.skills, job.required_skills, rankedJob.skills)),
+        score: firstValue(rankedJob.score, rankedJob.overall_score, rankedJob.match_score) || 0,
+        matched_skills: toArray(firstValue(rankedJob.matchedSkills, rankedJob.matched_skills)),
+        missing_skills: toArray(firstValue(rankedJob.missingSkills, rankedJob.missing_required_skills, rankedJob.missing_skills)),
+        recommendation_reason: firstValue(rankedJob.recommendationReason, rankedJob.recommendation_reason, rankedJob.reason) || null,
+      };
+    })
+    .filter((detail) => detail.job_id || detail.title);
+}
+
+function buildStorableCvPayload(cvPayload = {}, matchResponse = {}) {
+  const extractedSkills = toArray(matchResponse.extractedSkills || matchResponse.extracted_skills);
+  const storable = {};
+  const fileName = firstValue(cvPayload.fileName, cvPayload.filename);
+  const skills = extractedSkills.length > 0 ? extractedSkills : toArray(cvPayload.skills);
+
+  if (fileName) {
+    storable.fileName = fileName;
+  }
+  if (skills.length > 0) {
+    storable.skills = skills;
+  }
+  if (hasValue(cvPayload.title)) {
+    storable.title = cvPayload.title;
+  }
+  if (hasValue(cvPayload.location)) {
+    storable.location = cvPayload.location;
+  }
+  if (hasValue(cvPayload.totalYearsExperience)) {
+    storable.totalYearsExperience = cvPayload.totalYearsExperience;
+  }
+
+  return storable;
+}
+
+function buildIntentOnlyMatchResponse(jobs = []) {
+  const recommendedJobs = jobs
+    .map((job) => ({
+      jobId: job.id || job.jobId || job.job_id || null,
+      jobTitle: job.title || 'Untitled job',
+      company: job.company || job.company_name || null,
+      salary: job.salary || null,
+      score: Number.isFinite(Number(job.matchScore)) ? Number(job.matchScore) : 0,
+      matchedSkills: [],
+      missingSkills: [],
+      recommendationReason: 'Filtered by your search intent. Attach a CV to rank this job by fit.',
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  return {
+    success: true,
+    source: 'intent-filter',
+    recommendedJobs,
+  };
+}
+
 function buildAssistantMessage(rankedJobs, intent) {
   const count = rankedJobs.length;
   const role = intent.target_role ? ` for ${intent.target_role}` : '';
@@ -135,6 +293,52 @@ function buildAssistantMessage(rankedJobs, intent) {
   }
 
   return `Found ${count} job${count === 1 ? '' : 's'}${role}${location}. I ranked them by CV fit and available filters.`;
+}
+
+function getJobKeys(job = {}) {
+  return [job.id, job.jobId, job.job_id, job.external_id, job.url, job.source_url]
+    .filter(hasValue)
+    .map((key) => String(key));
+}
+
+function getRankedJobId(rankedJob = {}) {
+  return firstValue(rankedJob.jobId, rankedJob.job_id, rankedJob.id, rankedJob.external_id, rankedJob.url, rankedJob.source_url);
+}
+
+function firstValue(...values) {
+  return values.find(hasValue);
+}
+
+function pickCurrentOrPreviousArray(previousValue, currentValue) {
+  const current = toArray(currentValue);
+  if (current.length > 0) return [...new Set(current)];
+  return [...new Set(toArray(previousValue))];
+}
+
+function mergeUniqueArrays(previousValue, currentValue) {
+  return [...new Set([...toArray(previousValue), ...toArray(currentValue)])];
+}
+
+function toArray(value) {
+  if (Array.isArray(value)) return value.filter(hasValue);
+  if (hasValue(value)) return [value];
+  return [];
+}
+
+function hasCvPayload(cvPayload = {}) {
+  return Boolean(
+    hasValue(cvPayload.fileBase64) ||
+      hasValue(cvPayload.file_base64) ||
+      hasValue(cvPayload.cvText) ||
+      hasValue(cvPayload.text) ||
+      toArray(cvPayload.skills).length > 0,
+  );
+}
+
+function hasValue(value) {
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'string') return value.trim().length > 0;
+  return value !== null && value !== undefined;
 }
 
 function buildFollowUpQuestions(intent, message) {
@@ -153,7 +357,8 @@ function buildFollowUpQuestions(intent, message) {
 }
 
 function matchesSource(job, intent) {
-  if (!intent.job_sources || intent.job_sources.length === 0 || !job.source) return true;
+  if (!intent.job_sources || intent.job_sources.length === 0) return true;
+  if (!job.source) return false;
   return intent.job_sources.includes(normalizeText(job.source));
 }
 

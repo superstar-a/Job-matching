@@ -1,0 +1,342 @@
+{
+  "benchmark_name": "ai-service-embedding-benchmark",
+  "dataset_size": 5,
+  "k": 3,
+  "source_path": "data\\samples\\embedding_benchmark_pretrained_debug.json",
+  "model_summaries": [
+    {
+      "model_name": "tfidf-baseline",
+      "status": "completed",
+      "checked_prediction_count": 5,
+      "low_label_in_top_k_count": 1,
+      "relevant_missed_top_k_count": 1,
+      "score_range_violation_count": 3,
+      "issue_count": 5,
+      "recommendation": "Do not promote: model over-ranks low relevance jobs in top K.",
+      "issues": [
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "tfidf-baseline",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-001",
+          "rank": 1,
+          "score": 63.7774,
+          "label": "high",
+          "expected_min_score": 75.0,
+          "expected_max_score": 100.0,
+          "reason": "Backend Python CV matches Python, FastAPI, SQL, location, and experience; Docker is the main gap.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "low_label_in_top_k",
+          "model_name": "tfidf-baseline",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-011",
+          "rank": 3,
+          "score": 51.6675,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 35.0,
+          "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV.",
+          "message": "Low relevance job is ranked inside top 3."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "tfidf-baseline",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-011",
+          "rank": 3,
+          "score": 51.6675,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 35.0,
+          "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "relevant_missed_top_k",
+          "model_name": "tfidf-baseline",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-005",
+          "rank": 4,
+          "score": 51.2194,
+          "label": "medium",
+          "expected_min_score": 35.0,
+          "expected_max_score": 70.0,
+          "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused.",
+          "message": "Relevant job is ranked below top 3."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "tfidf-baseline",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 5,
+          "score": 50.8759,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "reason": "Frontend React JD has little overlap with the backend Python CV.",
+          "message": "Predicted score is outside the labeled expected range."
+        }
+      ]
+    },
+    {
+      "model_name": "BAAI/bge-m3",
+      "status": "completed",
+      "checked_prediction_count": 5,
+      "low_label_in_top_k_count": 1,
+      "relevant_missed_top_k_count": 1,
+      "score_range_violation_count": 4,
+      "issue_count": 6,
+      "recommendation": "Do not promote: model over-ranks low relevance jobs in top K.",
+      "issues": [
+        {
+          "issue_type": "low_label_in_top_k",
+          "model_name": "BAAI/bge-m3",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 2,
+          "score": 81.2222,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "reason": "Frontend React JD has little overlap with the backend Python CV.",
+          "message": "Low relevance job is ranked inside top 3."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "BAAI/bge-m3",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 2,
+          "score": 81.2222,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "reason": "Frontend React JD has little overlap with the backend Python CV.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "BAAI/bge-m3",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-003",
+          "rank": 3,
+          "score": 80.6023,
+          "label": "medium",
+          "expected_min_score": 45.0,
+          "expected_max_score": 80.0,
+          "reason": "Data Engineer JD shares Python and SQL, but the CV has limited Airflow/Spark/data modeling evidence.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "relevant_missed_top_k",
+          "model_name": "BAAI/bge-m3",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-005",
+          "rank": 4,
+          "score": 77.5554,
+          "label": "medium",
+          "expected_min_score": 35.0,
+          "expected_max_score": 70.0,
+          "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused.",
+          "message": "Relevant job is ranked below top 3."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "BAAI/bge-m3",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-005",
+          "rank": 4,
+          "score": 77.5554,
+          "label": "medium",
+          "expected_min_score": 35.0,
+          "expected_max_score": 70.0,
+          "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "BAAI/bge-m3",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-011",
+          "rank": 5,
+          "score": 77.1358,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 35.0,
+          "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV.",
+          "message": "Predicted score is outside the labeled expected range."
+        }
+      ]
+    },
+    {
+      "model_name": "intfloat/multilingual-e5-base",
+      "status": "completed",
+      "checked_prediction_count": 5,
+      "low_label_in_top_k_count": 1,
+      "relevant_missed_top_k_count": 1,
+      "score_range_violation_count": 4,
+      "issue_count": 6,
+      "recommendation": "Do not promote: model over-ranks low relevance jobs in top K.",
+      "issues": [
+        {
+          "issue_type": "low_label_in_top_k",
+          "model_name": "intfloat/multilingual-e5-base",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 2,
+          "score": 93.0269,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "reason": "Frontend React JD has little overlap with the backend Python CV.",
+          "message": "Low relevance job is ranked inside top 3."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "intfloat/multilingual-e5-base",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 2,
+          "score": 93.0269,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "reason": "Frontend React JD has little overlap with the backend Python CV.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "intfloat/multilingual-e5-base",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-003",
+          "rank": 3,
+          "score": 90.9091,
+          "label": "medium",
+          "expected_min_score": 45.0,
+          "expected_max_score": 80.0,
+          "reason": "Data Engineer JD shares Python and SQL, but the CV has limited Airflow/Spark/data modeling evidence.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "relevant_missed_top_k",
+          "model_name": "intfloat/multilingual-e5-base",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-005",
+          "rank": 4,
+          "score": 90.432,
+          "label": "medium",
+          "expected_min_score": 35.0,
+          "expected_max_score": 70.0,
+          "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused.",
+          "message": "Relevant job is ranked below top 3."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "intfloat/multilingual-e5-base",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-005",
+          "rank": 4,
+          "score": 90.432,
+          "label": "medium",
+          "expected_min_score": 35.0,
+          "expected_max_score": 70.0,
+          "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "intfloat/multilingual-e5-base",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-011",
+          "rank": 5,
+          "score": 89.7822,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 35.0,
+          "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV.",
+          "message": "Predicted score is outside the labeled expected range."
+        }
+      ]
+    },
+    {
+      "model_name": "bkai-foundation-models/vietnamese-bi-encoder",
+      "status": "completed",
+      "checked_prediction_count": 5,
+      "low_label_in_top_k_count": 1,
+      "relevant_missed_top_k_count": 1,
+      "score_range_violation_count": 2,
+      "issue_count": 4,
+      "recommendation": "Do not promote: model over-ranks low relevance jobs in top K.",
+      "issues": [
+        {
+          "issue_type": "low_label_in_top_k",
+          "model_name": "bkai-foundation-models/vietnamese-bi-encoder",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 2,
+          "score": 72.6015,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "reason": "Frontend React JD has little overlap with the backend Python CV.",
+          "message": "Low relevance job is ranked inside top 3."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "bkai-foundation-models/vietnamese-bi-encoder",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 2,
+          "score": 72.6015,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "reason": "Frontend React JD has little overlap with the backend Python CV.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "score_range_violation",
+          "model_name": "bkai-foundation-models/vietnamese-bi-encoder",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-011",
+          "rank": 4,
+          "score": 62.6585,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 35.0,
+          "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV.",
+          "message": "Predicted score is outside the labeled expected range."
+        },
+        {
+          "issue_type": "relevant_missed_top_k",
+          "model_name": "bkai-foundation-models/vietnamese-bi-encoder",
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-003",
+          "rank": 5,
+          "score": 59.8667,
+          "label": "medium",
+          "expected_min_score": 45.0,
+          "expected_max_score": 80.0,
+          "reason": "Data Engineer JD shares Python and SQL, but the CV has limited Airflow/Spark/data modeling evidence.",
+          "message": "Relevant job is ranked below top 3."
+        }
+      ]
+    }
+  ],
+  "problem_job_counts": {
+    "manual-jd-001": 1,
+    "manual-jd-011": 5,
+    "manual-jd-005": 5,
+    "manual-jd-002": 7,
+    "manual-jd-003": 3
+  },
+  "worst_models_by_issue_count": [
+    "BAAI/bge-m3",
+    "intfloat/multilingual-e5-base",
+    "tfidf-baseline",
+    "bkai-foundation-models/vietnamese-bi-encoder"
+  ]
+}

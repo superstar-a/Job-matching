@@ -1,0 +1,34 @@
+[
+  {
+    "model_name": "tfidf-baseline",
+    "provider": "sklearn",
+    "role": "local lexical baseline",
+    "revision": "local",
+    "enabled_by_default": true,
+    "notes": "Offline baseline used to compare pretrained embedding retrieval quality."
+  },
+  {
+    "model_name": "BAAI/bge-m3",
+    "provider": "sentence-transformers",
+    "role": "primary multilingual CV-JD semantic embedding candidate",
+    "revision": "main",
+    "enabled_by_default": false,
+    "notes": "Benchmark on mixed Vietnamese-English CV/JD before choosing as default."
+  },
+  {
+    "model_name": "intfloat/multilingual-e5-base",
+    "provider": "sentence-transformers",
+    "role": "lighter multilingual embedding comparison candidate",
+    "revision": "main",
+    "enabled_by_default": false,
+    "notes": "Use as a lighter quality/latency comparison against bge-m3."
+  },
+  {
+    "model_name": "bkai-foundation-models/vietnamese-bi-encoder",
+    "provider": "sentence-transformers",
+    "role": "Vietnamese-heavy CV/JD semantic embedding candidate",
+    "revision": "main",
+    "enabled_by_default": false,
+    "notes": "Benchmark separately on Vietnamese-heavy samples before production use."
+  }
+]

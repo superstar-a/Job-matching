@@ -19,6 +19,10 @@ class ExtractedEntity(BaseModel):
                 "source_span": "FastAPI",
                 "section": "skills",
                 "evidence": "Skills: Python, FastAPI, SQL",
+                "esco_uri": None,
+                "esco_preferred_label": None,
+                "esco_type": None,
+                "isco_group": None,
             }
         }
     )
@@ -36,6 +40,10 @@ class ExtractedEntity(BaseModel):
     evidence: str | None = None
     aliases: list[str] = Field(default_factory=list)
     recency: str | None = None
+    esco_uri: str | None = None
+    esco_preferred_label: str | None = None
+    esco_type: str | None = None
+    isco_group: str | None = None
 
 
 class EntityExtractionRequest(BaseModel):

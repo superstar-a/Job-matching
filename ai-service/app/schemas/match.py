@@ -86,3 +86,4 @@ class RecommendedJob(BaseModel):
     overall_score: float = Field(ge=0, le=100)
     matched_skills: list[str] = Field(default_factory=list)
     missing_required_skills: list[str] = Field(default_factory=list)
+    recommendation_reason: str | None = None

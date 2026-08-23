@@ -1,0 +1,74 @@
+[
+  {
+    "sample_id": "intent-001",
+    "intent_label": "job_search",
+    "predicted_intent": {
+      "target_role": "python backend",
+      "required_skills": ["Python"],
+      "job_sources": ["topcv"],
+      "location": "HCM",
+      "work_mode": "remote",
+      "salary_min": 20000000,
+      "currency": "vnd",
+      "required_filters": ["work_mode", "location", "salary_min", "job_sources"]
+    }
+  },
+  {
+    "sample_id": "intent-002",
+    "intent_label": "job_search",
+    "predicted_intent": {
+      "target_role": "data engineer",
+      "job_sources": ["itviec"],
+      "location": "Ha Noi",
+      "work_mode": "hybrid",
+      "level": "senior",
+      "company_type": "product",
+      "required_filters": ["location", "work_mode", "level", "company_type", "job_sources"]
+    }
+  },
+  {
+    "sample_id": "intent-003",
+    "intent_label": "job_search",
+    "predicted_intent": {
+      "target_role": "database administrator",
+      "required_skills": ["SQL Server"],
+      "job_sources": ["vietnamworks"],
+      "work_mode": "onsite",
+      "salary_min": 1500,
+      "currency": "usd",
+      "required_filters": ["salary_min", "work_mode", "job_sources"]
+    }
+  },
+  {
+    "sample_id": "intent-004",
+    "intent_label": "job_search",
+    "predicted_intent": {
+      "target_role": "ai engineer",
+      "required_skills": ["NLP", "PyTorch"],
+      "work_mode": "remote",
+      "level": "junior",
+      "required_filters": ["level", "work_mode"]
+    }
+  },
+  {
+    "sample_id": "intent-005",
+    "intent_label": "job_fit_analysis",
+    "predicted_intent": {
+      "job_sources": ["uploaded_jd"],
+      "analysis_mode": "cv_job_fit",
+      "needs_cv_suggestions": true
+    }
+  },
+  {
+    "sample_id": "intent-006",
+    "intent_label": "job_search",
+    "predicted_intent": {
+      "target_role": "node.js backend",
+      "required_skills": ["NestJS", "Node.js"],
+      "job_sources": ["itviec", "topcv"],
+      "location": "Da Nang",
+      "work_mode": "hybrid",
+      "required_filters": ["work_mode", "location", "job_sources"]
+    }
+  }
+]

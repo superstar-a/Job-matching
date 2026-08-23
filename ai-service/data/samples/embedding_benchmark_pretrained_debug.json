@@ -1,0 +1,366 @@
+{
+  "benchmark_name": "ai-service-embedding-benchmark",
+  "dataset_size": 5,
+  "k": 3,
+  "results": [
+    {
+      "model_name": "tfidf-baseline",
+      "status": "completed",
+      "ranking": {
+        "k": 3,
+        "metrics_by_cv": {
+          "cv-backend-sample": {
+            "precision_at_k": 0.6666666666666666,
+            "recall_at_k": 0.6666666666666666,
+            "ndcg_at_k": 0.8556691603792903,
+            "relevant_count": 3,
+            "retrieved_count": 3,
+            "labeled_count": 5
+          }
+        },
+        "macro_precision_at_k": 0.6666666666666666,
+        "macro_recall_at_k": 0.6666666666666666,
+        "macro_ndcg_at_k": 0.8556691603792903
+      },
+      "score_range_violation_count": 3,
+      "latency_ms": 1284.5092,
+      "model_load_ms": 0.0,
+      "prediction_count": 5,
+      "ranking_debug": [
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-001",
+          "rank": 1,
+          "score": 63.7774,
+          "label": "high",
+          "expected_min_score": 75.0,
+          "expected_max_score": 100.0,
+          "in_expected_range": false,
+          "reason": "Backend Python CV matches Python, FastAPI, SQL, location, and experience; Docker is the main gap."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-003",
+          "rank": 2,
+          "score": 54.4046,
+          "label": "medium",
+          "expected_min_score": 45.0,
+          "expected_max_score": 80.0,
+          "in_expected_range": true,
+          "reason": "Data Engineer JD shares Python and SQL, but the CV has limited Airflow/Spark/data modeling evidence."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-011",
+          "rank": 3,
+          "score": 51.6675,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 35.0,
+          "in_expected_range": false,
+          "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-005",
+          "rank": 4,
+          "score": 51.2194,
+          "label": "medium",
+          "expected_min_score": 35.0,
+          "expected_max_score": 70.0,
+          "in_expected_range": true,
+          "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 5,
+          "score": 50.8759,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "in_expected_range": false,
+          "reason": "Frontend React JD has little overlap with the backend Python CV."
+        }
+      ],
+      "metadata": {
+        "provider": "sklearn",
+        "model_type": "tfidf"
+      },
+      "error": null
+    },
+    {
+      "model_name": "BAAI/bge-m3",
+      "status": "completed",
+      "ranking": {
+        "k": 3,
+        "metrics_by_cv": {
+          "cv-backend-sample": {
+            "precision_at_k": 0.6666666666666666,
+            "recall_at_k": 0.6666666666666666,
+            "ndcg_at_k": 0.8178747578506881,
+            "relevant_count": 3,
+            "retrieved_count": 3,
+            "labeled_count": 5
+          }
+        },
+        "macro_precision_at_k": 0.6666666666666666,
+        "macro_recall_at_k": 0.6666666666666666,
+        "macro_ndcg_at_k": 0.8178747578506881
+      },
+      "score_range_violation_count": 4,
+      "latency_ms": 1955.7375,
+      "model_load_ms": 9791.4058,
+      "prediction_count": 5,
+      "ranking_debug": [
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-001",
+          "rank": 1,
+          "score": 91.9699,
+          "label": "high",
+          "expected_min_score": 75.0,
+          "expected_max_score": 100.0,
+          "in_expected_range": true,
+          "reason": "Backend Python CV matches Python, FastAPI, SQL, location, and experience; Docker is the main gap."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 2,
+          "score": 81.2222,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "in_expected_range": false,
+          "reason": "Frontend React JD has little overlap with the backend Python CV."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-003",
+          "rank": 3,
+          "score": 80.6023,
+          "label": "medium",
+          "expected_min_score": 45.0,
+          "expected_max_score": 80.0,
+          "in_expected_range": false,
+          "reason": "Data Engineer JD shares Python and SQL, but the CV has limited Airflow/Spark/data modeling evidence."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-005",
+          "rank": 4,
+          "score": 77.5554,
+          "label": "medium",
+          "expected_min_score": 35.0,
+          "expected_max_score": 70.0,
+          "in_expected_range": false,
+          "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-011",
+          "rank": 5,
+          "score": 77.1358,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 35.0,
+          "in_expected_range": false,
+          "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV."
+        }
+      ],
+      "metadata": {
+        "provider": "sentence-transformers",
+        "revision": "main",
+        "batch_size": 16,
+        "device": "auto"
+      },
+      "error": null
+    },
+    {
+      "model_name": "intfloat/multilingual-e5-base",
+      "status": "completed",
+      "ranking": {
+        "k": 3,
+        "metrics_by_cv": {
+          "cv-backend-sample": {
+            "precision_at_k": 0.6666666666666666,
+            "recall_at_k": 0.6666666666666666,
+            "ndcg_at_k": 0.8178747578506881,
+            "relevant_count": 3,
+            "retrieved_count": 3,
+            "labeled_count": 5
+          }
+        },
+        "macro_precision_at_k": 0.6666666666666666,
+        "macro_recall_at_k": 0.6666666666666666,
+        "macro_ndcg_at_k": 0.8178747578506881
+      },
+      "score_range_violation_count": 4,
+      "latency_ms": 488.6718,
+      "model_load_ms": 9826.7107,
+      "prediction_count": 5,
+      "ranking_debug": [
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-001",
+          "rank": 1,
+          "score": 96.4539,
+          "label": "high",
+          "expected_min_score": 75.0,
+          "expected_max_score": 100.0,
+          "in_expected_range": true,
+          "reason": "Backend Python CV matches Python, FastAPI, SQL, location, and experience; Docker is the main gap."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 2,
+          "score": 93.0269,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "in_expected_range": false,
+          "reason": "Frontend React JD has little overlap with the backend Python CV."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-003",
+          "rank": 3,
+          "score": 90.9091,
+          "label": "medium",
+          "expected_min_score": 45.0,
+          "expected_max_score": 80.0,
+          "in_expected_range": false,
+          "reason": "Data Engineer JD shares Python and SQL, but the CV has limited Airflow/Spark/data modeling evidence."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-005",
+          "rank": 4,
+          "score": 90.432,
+          "label": "medium",
+          "expected_min_score": 35.0,
+          "expected_max_score": 70.0,
+          "in_expected_range": false,
+          "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-011",
+          "rank": 5,
+          "score": 89.7822,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 35.0,
+          "in_expected_range": false,
+          "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV."
+        }
+      ],
+      "metadata": {
+        "provider": "sentence-transformers",
+        "revision": "main",
+        "batch_size": 16,
+        "device": "auto"
+      },
+      "error": null
+    },
+    {
+      "model_name": "bkai-foundation-models/vietnamese-bi-encoder",
+      "status": "completed",
+      "ranking": {
+        "k": 3,
+        "metrics_by_cv": {
+          "cv-backend-sample": {
+            "precision_at_k": 0.6666666666666666,
+            "recall_at_k": 0.6666666666666666,
+            "ndcg_at_k": 0.8178747578506881,
+            "relevant_count": 3,
+            "retrieved_count": 3,
+            "labeled_count": 5
+          }
+        },
+        "macro_precision_at_k": 0.6666666666666666,
+        "macro_recall_at_k": 0.6666666666666666,
+        "macro_ndcg_at_k": 0.8178747578506881
+      },
+      "score_range_violation_count": 2,
+      "latency_ms": 641.0707,
+      "model_load_ms": 6668.6007,
+      "prediction_count": 5,
+      "ranking_debug": [
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-001",
+          "rank": 1,
+          "score": 91.5665,
+          "label": "high",
+          "expected_min_score": 75.0,
+          "expected_max_score": 100.0,
+          "in_expected_range": true,
+          "reason": "Backend Python CV matches Python, FastAPI, SQL, location, and experience; Docker is the main gap."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-002",
+          "rank": 2,
+          "score": 72.6015,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 40.0,
+          "in_expected_range": false,
+          "reason": "Frontend React JD has little overlap with the backend Python CV."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-005",
+          "rank": 3,
+          "score": 63.2393,
+          "label": "medium",
+          "expected_min_score": 35.0,
+          "expected_max_score": 70.0,
+          "in_expected_range": true,
+          "reason": "DevOps JD shares AWS and Docker evidence, but the CV is not primarily infrastructure focused."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-011",
+          "rank": 4,
+          "score": 62.6585,
+          "label": "low",
+          "expected_min_score": 0.0,
+          "expected_max_score": 35.0,
+          "in_expected_range": false,
+          "reason": "Product Designer JD focuses on design research and Figma, which do not match the backend CV."
+        },
+        {
+          "cv_id": "cv-backend-sample",
+          "job_id": "manual-jd-003",
+          "rank": 5,
+          "score": 59.8667,
+          "label": "medium",
+          "expected_min_score": 45.0,
+          "expected_max_score": 80.0,
+          "in_expected_range": true,
+          "reason": "Data Engineer JD shares Python and SQL, but the CV has limited Airflow/Spark/data modeling evidence."
+        }
+      ],
+      "metadata": {
+        "provider": "sentence-transformers",
+        "revision": "main",
+        "batch_size": 16,
+        "device": "auto"
+      },
+      "error": null
+    }
+  ],
+  "metadata": {
+    "created_at_utc": "2026-08-23T03:57:55.024345+00:00",
+    "python_version": "3.10.11",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "registry_path": "D:\\studies\\AWS\\Job-matching\\ai-service\\data\\model_registry\\embedding_models.json",
+    "labels_path": "D:\\studies\\AWS\\Job-matching\\ai-service\\data\\samples\\matching_evaluation.json",
+    "cv_id": "cv-backend-sample",
+    "jobs_path": "D:\\studies\\AWS\\Job-matching\\ai-service\\data\\samples\\jd_samples_20.json"
+  }
+}

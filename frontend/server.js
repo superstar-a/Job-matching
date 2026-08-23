@@ -206,6 +206,67 @@ const HTML_CONTENT = `<!DOCTYPE html>
     .match-job-score { color: var(--accent-emerald); font-weight: 800; white-space: nowrap; }
     .match-job-reason { color: #d1d5db; font-size: 12px; line-height: 1.5; margin-top: 10px; }
 
+    .assistant-shell { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr); gap: 20px; align-items: start; }
+    .assistant-chat-panel, .assistant-results-panel, .assistant-detail-panel {
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: 16px; padding: 20px; backdrop-filter: blur(12px);
+    }
+    .assistant-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .assistant-panel-title { font-family: var(--font-heading); font-size: 20px; font-weight: 700; }
+    .assistant-panel-subtitle { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+    .assistant-messages {
+      height: 360px; overflow-y: auto; display: flex; flex-direction: column;
+      gap: 12px; padding-right: 4px; margin-bottom: 12px;
+    }
+    .assistant-message {
+      max-width: 88%; padding: 12px 14px; border-radius: 14px;
+      border: 1px solid var(--border-color); font-size: 14px; line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    .assistant-message.assistant { align-self: flex-start; background: rgba(6, 182, 212, 0.08); }
+    .assistant-message.user { align-self: flex-end; background: rgba(99, 102, 241, 0.18); }
+    .assistant-attachment {
+      min-height: 28px; color: var(--text-muted); font-size: 12px;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .assistant-input-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) 104px; gap: 10px; align-items: stretch; }
+    .assistant-file-btn {
+      border: 1px solid var(--border-color); border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06); color: #fff; cursor: pointer; font-weight: 800;
+    }
+    .assistant-file-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+    .assistant-input {
+      width: 100%; min-height: 48px; max-height: 120px; resize: vertical;
+      border-radius: 12px; border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.05); color: #fff; padding: 12px;
+      font-family: inherit; outline: none; line-height: 1.4;
+    }
+    .assistant-input:focus { border-color: var(--primary); }
+    .assistant-job-results { display: grid; gap: 12px; margin-top: 14px; }
+    .assistant-job-card {
+      border: 1px solid var(--border-color); border-radius: 14px; padding: 14px;
+      background: rgba(255, 255, 255, 0.04); cursor: pointer; transition: all 0.2s ease;
+    }
+    .assistant-job-card:hover, .assistant-job-card.active { border-color: var(--accent-cyan); background: rgba(6, 182, 212, 0.08); }
+    .assistant-job-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .assistant-job-title { font-weight: 800; font-size: 15px; line-height: 1.35; }
+    .assistant-job-meta { color: var(--text-muted); font-size: 12px; margin-top: 5px; }
+    .assistant-score { color: var(--accent-emerald); font-weight: 800; white-space: nowrap; }
+    .assistant-detail-panel { margin-top: 16px; }
+    .assistant-detail-empty { color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+    .assistant-detail-title { font-family: var(--font-heading); font-size: 19px; margin-bottom: 4px; }
+    .assistant-detail-meta { color: var(--text-muted); font-size: 12px; margin-bottom: 14px; }
+    .assistant-detail-desc { color: #d1d5db; font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
+    .assistant-section-label { color: var(--text-muted); font-size: 12px; font-weight: 700; margin: 12px 0 6px; text-transform: uppercase; }
+    .assistant-error { border-color: rgba(248, 113, 113, 0.4); background: rgba(248, 113, 113, 0.08); }
+
+    @media (max-width: 900px) {
+      .assistant-shell { grid-template-columns: 1fr; }
+      .assistant-input-row { grid-template-columns: 44px minmax(0, 1fr); }
+      .assistant-input-row .btn-search { grid-column: 1 / -1; }
+      .results-grid { grid-template-columns: 1fr; }
+    }
+
     .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
     .stat-card {
       background: var(--bg-card); padding: 24px; border-radius: 16px; border: 1px solid var(--border-color);
@@ -243,7 +304,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
       </a>
 
       <nav class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('jobs', event)">🔍 Tìm Việc Làm</button>
+        <button class="nav-tab active" onclick="switchTab('assistant', event)">💬 Chat Assistant</button>
         <button class="nav-tab" onclick="switchTab('matcher', event)">🤖 AI CV Matcher</button>
         <button class="nav-tab" onclick="switchTab('analytics', event)">📊 Thống Kê Kỹ Năng</button>
         <button class="nav-tab" onclick="switchTab('employer', event)">💼 Nhà Tuyển Dụng</button>
@@ -258,32 +319,8 @@ const HTML_CONTENT = `<!DOCTYPE html>
   </header>
 
   <main class="container">
-    
-    <section class="hero">
-      <h1>Nền Tảng Phân Tích & Gợi Ý Việc Làm AI</h1>
-      <p>Hệ thống tự động đọc hiểu CV, trích xuất kỹ năng bằng NLP và dự đoán tỷ lệ trúng tuyển với thuật toán Học Máy (Machine Learning).</p>
-    </section>
 
-    <!-- TAB 1: JOB CATALOG & SEARCH -->
-    <div id="tab-jobs" class="view-content active">
-      <div class="search-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="Nhập tên vị trí (Flutter, Node.js, SQL Server, Python...)" onkeyup="filterJobs()">
-        <button class="btn-search" onclick="filterJobs()">Tìm kiếm</button>
-      </div>
-
-      <div class="skill-chips">
-        <span class="chip active" onclick="filterByTag('', event)">Tất cả</span>
-        <span class="chip" onclick="filterByTag('Flutter', event)">Flutter</span>
-        <span class="chip" onclick="filterByTag('Node.js', event)">Node.js / NestJS</span>
-        <span class="chip" onclick="filterByTag('Python', event)">Python / AI</span>
-        <span class="chip" onclick="filterByTag('SQL Server', event)">SQL Server</span>
-        <span class="chip" onclick="filterByTag('Docker', event)">Docker</span>
-      </div>
-
-      <div class="job-grid" id="jobGrid"></div>
-    </div>
-
-    <!-- TAB 2: AI CV MATCHER -->
+    <!-- TAB 1: AI CV MATCHER -->
     <div id="tab-matcher" class="view-content">
       <div style="max-width: 800px; margin: 0 auto;">
         <div class="upload-box" onclick="triggerCVUpload()">
@@ -325,6 +362,51 @@ const HTML_CONTENT = `<!DOCTYPE html>
           </div>
           <div class="match-job-list" id="recommendedJobList"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: CHAT ASSISTANT -->
+    <div id="tab-assistant" class="view-content active">
+      <div class="assistant-shell">
+        <section class="assistant-chat-panel">
+          <div class="assistant-panel-heading">
+            <div>
+              <div class="assistant-panel-title">Job Chat Assistant</div>
+              <div class="assistant-panel-subtitle">Context-aware search with CV ranking</div>
+            </div>
+            <span class="match-badge" id="assistantSessionBadge">New session</span>
+          </div>
+
+          <div class="assistant-messages" id="assistantMessages">
+            <div class="assistant-message assistant">Tell me the role, source, salary, location, or work mode you want. Attach a CV when you want ranking by fit.</div>
+          </div>
+
+          <div class="assistant-attachment" id="assistantAttachmentLabel">No CV attached</div>
+          <div class="assistant-input-row">
+            <button class="assistant-file-btn" onclick="triggerAssistantUpload()" title="Attach CV">CV</button>
+            <textarea id="assistantInput" class="assistant-input" placeholder="Example: Find TopCV jobs above 20tr in HCM for Python backend" onkeydown="handleAssistantKeydown(event)"></textarea>
+            <button class="btn-search" id="assistantSendButton" onclick="sendAssistantMessage()">Send</button>
+            <input type="file" id="assistantCvInput" style="display: none;" onchange="handleAssistantUpload(this)">
+          </div>
+        </section>
+
+        <aside>
+          <section class="assistant-results-panel">
+            <div class="assistant-panel-heading">
+              <div>
+                <div class="assistant-panel-title">Ranked Jobs</div>
+                <div class="assistant-panel-subtitle" id="assistantFilterSummary">No filters yet</div>
+              </div>
+            </div>
+            <div class="assistant-job-results" id="assistantJobResults">
+              <div class="assistant-detail-empty">Search results will appear here.</div>
+            </div>
+          </section>
+
+          <section class="assistant-detail-panel" id="assistantDetailPanel">
+            <div class="assistant-detail-empty">Select a job to inspect match evidence.</div>
+          </section>
+        </aside>
       </div>
     </div>
 
@@ -467,75 +549,9 @@ const HTML_CONTENT = `<!DOCTYPE html>
       }
     ];
 
-    function renderJobs(list) {
-      var grid = document.getElementById('jobGrid');
-      if (!list || list.length === 0) {
-        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">Không tìm thấy công việc phù hợp</div>';
-        return;
-      }
-
-      var html = '';
-      for (var i = 0; i < list.length; i++) {
-        var job = list[i];
-        var tagsHtml = '';
-        for (var j = 0; j < job.skills.length; j++) {
-          tagsHtml += '<span class="tag">' + job.skills[j] + '</span>';
-        }
-        html += '<div class="job-card">' +
-          '<div>' +
-            '<div class="job-header">' +
-              '<div>' +
-                '<div class="job-title">' + job.title + '</div>' +
-                '<div class="company-name">' + job.company + ' • ' + job.location + '</div>' +
-              '</div>' +
-              '<div class="match-badge">⚡ ' + (job.matchScore || 85) + '% Match</div>' +
-            '</div>' +
-            '<div class="job-meta"><span>💰 ' + job.salary + '</span></div>' +
-            '<div class="job-desc">' + job.description + '</div>' +
-            '<div class="tags">' + tagsHtml + '</div>' +
-          '</div>' +
-          '<button class="btn-apply" onclick="applyJob(\'' + job.title.replace(/'/g, "\\'") + '\')">Nộp CV & Phân Tích Match</button>' +
-        '</div>';
-      }
-      grid.innerHTML = html;
-    }
-
-    function fetchJobsFromBackend() {
-      fetch(BACKEND_API_URL + '/api/jobs')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          if (data && data.success && data.data && data.data.length > 0) {
-            jobsData = data.data;
-            renderJobs(jobsData);
-          } else {
-            renderJobs(jobsData);
-          }
-        })
-        .catch(function(err) {
-          console.log('Backend fallback to local mock data');
-          renderJobs(jobsData);
-        });
-    }
-
-    function filterJobs() {
-      var q = document.getElementById('searchInput').value.toLowerCase();
-      var filtered = jobsData.filter(function(j) {
-        return j.title.toLowerCase().indexOf(q) !== -1 ||
-          j.company.toLowerCase().indexOf(q) !== -1 ||
-          j.skills.some(function(s) { return s.toLowerCase().indexOf(q) !== -1; });
-      });
-      renderJobs(filtered);
-    }
-
-    function filterByTag(skill, evt) {
-      document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
-      if (evt && evt.target) evt.target.classList.add('active');
-      if (!skill) { renderJobs(jobsData); return; }
-      var filtered = jobsData.filter(function(j) {
-        return j.skills.some(function(s) { return s.toLowerCase().indexOf(skill.toLowerCase()) !== -1; });
-      });
-      renderJobs(filtered);
-    }
+    var assistantConversationId = null;
+    var assistantCvFile = null;
+    var assistantLastDetails = [];
 
     function switchTab(tabName, evt) {
       document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
@@ -681,6 +697,194 @@ const HTML_CONTENT = `<!DOCTYPE html>
       }).join('');
     }
 
+    function triggerAssistantUpload() {
+      document.getElementById('assistantCvInput').click();
+    }
+
+    function handleAssistantUpload(input) {
+      assistantCvFile = (input.files && input.files[0]) ? input.files[0] : null;
+      var label = document.getElementById('assistantAttachmentLabel');
+      label.innerText = assistantCvFile ? 'CV attached: ' + assistantCvFile.name : 'No CV attached';
+    }
+
+    function handleAssistantKeydown(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendAssistantMessage();
+      }
+    }
+
+    function sendAssistantMessage() {
+      var input = document.getElementById('assistantInput');
+      var message = input.value.trim();
+      if (!message && !assistantCvFile) return;
+
+      appendAssistantMessage('user', message || 'Uploaded CV');
+      input.value = '';
+      setAssistantLoading(true);
+
+      buildAssistantChatPayload(message)
+        .then(requestJobAssistantChat)
+        .then(renderAssistantResponse)
+        .catch(function(error) {
+          console.log('Job assistant failed', error);
+          appendAssistantMessage('assistant assistant-error', 'Cannot reach Backend /api/job-assistant/chat. Check backend port 4000 and try again.');
+        })
+        .finally(function() {
+          setAssistantLoading(false);
+        });
+    }
+
+    function buildAssistantChatPayload(message) {
+      return readFileAsBase64(assistantCvFile).then(function(fileBase64) {
+        var payload = {
+          conversation_id: assistantConversationId,
+          message: message
+        };
+
+        if (assistantCvFile) {
+          payload.cv = {
+            fileName: assistantCvFile.name
+          };
+          if (fileBase64) payload.cv.fileBase64 = fileBase64;
+        }
+
+        return payload;
+      });
+    }
+
+    function requestJobAssistantChat(payload) {
+      return fetch(BACKEND_API_URL + '/api/job-assistant/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function(response) {
+        if (!response.ok) {
+          throw new Error('Backend assistant failed with status ' + response.status);
+        }
+        return response.json();
+      }).then(function(data) {
+        if (!data || !data.success) {
+          throw new Error((data && data.error) || 'Backend assistant returned an invalid response');
+        }
+        return data;
+      });
+    }
+
+    function renderAssistantResponse(data) {
+      assistantConversationId = data.conversation_id || assistantConversationId;
+      assistantLastDetails = data.job_details || [];
+
+      document.getElementById('assistantSessionBadge').innerText = assistantConversationId ? 'Session active' : 'New session';
+      document.getElementById('assistantFilterSummary').innerText = buildAssistantFilterSummary(data.filters || {}, data.selected_sources || []);
+      appendAssistantMessage('assistant', data.assistant_message || 'I ranked the jobs I found.');
+      if (assistantCvFile) {
+        assistantCvFile = null;
+        document.getElementById('assistantCvInput').value = '';
+        document.getElementById('assistantAttachmentLabel').innerText = 'CV profile saved for this session';
+      }
+
+      var questions = data.follow_up_questions || [];
+      if (questions.length > 0) {
+        appendAssistantMessage('assistant', questions.join(' '));
+      }
+
+      renderAssistantJobCards(data.ranked_jobs || [], assistantLastDetails);
+      if (assistantLastDetails.length > 0) {
+        openAssistantJobDetail(0);
+      } else {
+        document.getElementById('assistantDetailPanel').innerHTML = '<div class="assistant-detail-empty">No job detail available yet.</div>';
+      }
+    }
+
+    function renderAssistantJobCards(rankedJobs, details) {
+      var container = document.getElementById('assistantJobResults');
+      if (!rankedJobs.length) {
+        container.innerHTML = '<div class="assistant-detail-empty">No ranked jobs for the current filters.</div>';
+        return;
+      }
+
+      container.innerHTML = rankedJobs.map(function(job, index) {
+        var detail = details[index] || {};
+        var title = job.jobTitle || job.title || detail.title || 'Untitled job';
+        var company = job.company || detail.company_name || 'Unknown company';
+        var salary = job.salary || detail.salary || 'Salary hidden';
+        var score = Math.round(job.score || detail.score || 0);
+        return '<div class="assistant-job-card' + (index === 0 ? ' active' : '') + '" onclick="openAssistantJobDetail(' + index + ')">' +
+          '<div class="assistant-job-card-head">' +
+            '<div>' +
+              '<div class="assistant-job-title">' + escapeHtml(title) + '</div>' +
+              '<div class="assistant-job-meta">' + escapeHtml(company) + ' - ' + escapeHtml(salary) + '</div>' +
+            '</div>' +
+            '<div class="assistant-score">' + score + '%</div>' +
+          '</div>' +
+          '<div class="assistant-job-meta">' + escapeHtml(job.recommendationReason || detail.recommendation_reason || 'Open detail for match evidence') + '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function openAssistantJobDetail(index) {
+      var detail = assistantLastDetails[index];
+      var panel = document.getElementById('assistantDetailPanel');
+      document.querySelectorAll('.assistant-job-card').forEach(function(card, cardIndex) {
+        card.classList.toggle('active', cardIndex === index);
+      });
+
+      if (!detail) {
+        panel.innerHTML = '<div class="assistant-detail-empty">Select a job to inspect match evidence.</div>';
+        return;
+      }
+
+      panel.innerHTML =
+        '<div class="assistant-detail-title">' + escapeHtml(detail.title || 'Untitled job') + '</div>' +
+        '<div class="assistant-detail-meta">' + escapeHtml(detail.company_name || 'Unknown company') + ' - ' +
+          escapeHtml(detail.location || 'Location hidden') + ' - ' + escapeHtml(detail.salary || 'Salary hidden') + '</div>' +
+        '<div class="assistant-detail-desc">' + escapeHtml(detail.description || 'No description available.') + '</div>' +
+        '<div class="assistant-section-label">Matched skills</div>' +
+        '<div class="tags">' + renderAssistantSkillTags(detail.matched_skills, true) + '</div>' +
+        '<div class="assistant-section-label">Missing skills</div>' +
+        '<div class="tags">' + renderAssistantSkillTags(detail.missing_skills, false) + '</div>' +
+        '<div class="assistant-section-label">Reason</div>' +
+        '<div class="assistant-detail-desc">' + escapeHtml(detail.recommendation_reason || 'No recommendation reason returned.') + '</div>';
+    }
+
+    function renderAssistantSkillTags(skills, positive) {
+      var list = skills || [];
+      if (!list.length) {
+        return '<span class="tag">None</span>';
+      }
+      return list.map(function(skill) {
+        var style = positive
+          ? 'background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald);'
+          : 'background: rgba(236, 72, 153, 0.18); color: #f9a8d4;';
+        return '<span class="tag" style="' + style + '">' + escapeHtml(skill) + '</span>';
+      }).join('');
+    }
+
+    function appendAssistantMessage(role, text) {
+      var messages = document.getElementById('assistantMessages');
+      var bubble = document.createElement('div');
+      bubble.className = 'assistant-message ' + role;
+      bubble.innerText = text;
+      messages.appendChild(bubble);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function setAssistantLoading(isLoading) {
+      var button = document.getElementById('assistantSendButton');
+      button.disabled = isLoading;
+      button.innerText = isLoading ? 'Sending' : 'Send';
+    }
+
+    function buildAssistantFilterSummary(filters, sources) {
+      var parts = [];
+      if (sources.length) parts.push('Sources: ' + sources.join(', '));
+      if (filters.location) parts.push('Location: ' + filters.location);
+      if (filters.work_mode) parts.push('Mode: ' + filters.work_mode);
+      if (filters.salary_min) parts.push('Min salary: ' + filters.salary_min);
+      return parts.length ? parts.join(' | ') : 'No filters yet';
+    }
+
     function escapeHtml(value) {
       return String(value || '')
         .replace(/&/g, '&amp;')
@@ -710,16 +914,14 @@ const HTML_CONTENT = `<!DOCTYPE html>
       };
 
       jobsData.unshift(newJob);
-      alert('Đã thêm bài tuyển dụng thành công!');
-      switchTab('jobs');
-      renderJobs(jobsData);
+      alert('Đã thêm bài tuyển dụng thành công! Dùng Chat Assistant để tìm và phân tích job phù hợp.');
+      switchTab('assistant');
     }
 
     function applyJob(title) {
       alert('Đã gửi hồ sơ ứng tuyển vị trí: ' + title + '\\nHệ thống AI đang tính toán cơ hội trúng tuyển!');
     }
 
-    fetchJobsFromBackend();
   </script>
 </body>
 </html>`;

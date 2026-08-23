@@ -14,6 +14,7 @@ const jsonLogger = {
 const MOCK_JOBS = [
   {
     id: 'job-1',
+    source: 'topcv',
     title: 'Senior Flutter & Mobile Developer',
     company: 'TechCorp Vietnam',
     location: 'TP. Hồ Chí Minh (Hybrid)',
@@ -26,6 +27,7 @@ const MOCK_JOBS = [
   },
   {
     id: 'job-2',
+    source: 'itviec',
     title: 'Fullstack Node.js & React Architect',
     company: 'InnovateX Solutions',
     location: 'Hà Nội',
@@ -38,6 +40,7 @@ const MOCK_JOBS = [
   },
   {
     id: 'job-3',
+    source: 'topcv',
     title: 'AI & Data NLP Engineer (Python / FastAPI)',
     company: 'AI Automation Lab',
     location: 'Đà Nẵng (Remote)',
@@ -50,6 +53,7 @@ const MOCK_JOBS = [
   },
   {
     id: 'job-4',
+    source: 'vietnamworks',
     title: 'Database Administrator & SQL Server Specialist',
     company: 'FinTech Global',
     location: 'TP. Hồ Chí Minh',
@@ -62,6 +66,7 @@ const MOCK_JOBS = [
   },
   {
     id: 'job-5',
+    source: 'itviec',
     title: 'Junior Web & Mobile Developer',
     company: 'NextGen Startup',
     location: 'Hà Nội (Hybrid)',

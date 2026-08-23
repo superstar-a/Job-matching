@@ -21,6 +21,7 @@ from app.services.data_cleaning import (
     normalize_salary,
     skill_key,
 )
+from app.services.esco_taxonomy import EscoConcept, load_esco_taxonomy
 
 
 SECTION_ALIASES: dict[str, tuple[str, ...]] = {
@@ -240,6 +241,7 @@ def extract_entities_from_text(
 
     entities: list[ExtractedEntity] = []
     entities.extend(extract_skill_entities(normalized_text, sections))
+    entities.extend(extract_occupation_entities(normalized_text, sections))
     entities.extend(extract_year_entities(normalized_text, sections))
     entities.extend(extract_location_entities(normalized_text, sections))
     entities.extend(extract_seniority_entities(normalized_text, sections))
@@ -259,6 +261,7 @@ def extract_skill_entities(
     sections: list[TextSection],
 ) -> list[ExtractedEntity]:
     aliases = load_skill_aliases()
+    esco_taxonomy = load_esco_taxonomy()
     folded_text = fold_for_search(text)
     entities: list[ExtractedEntity] = []
     seen: set[tuple[str, str]] = set()
@@ -276,6 +279,7 @@ def extract_skill_entities(
                 continue
             seen.add(key)
             raw_text = text[match.start() : match.end()]
+            esco_metadata = esco_taxonomy.resolve_entity_metadata("skill", canonical)
             entities.append(
                 build_entity(
                     text=text,
@@ -287,8 +291,49 @@ def extract_skill_entities(
                     section=section,
                     confidence=0.92,
                     aliases=[alias] if skill_key(alias) != skill_key(canonical) else [],
+                    esco_metadata=esco_metadata,
                 )
             )
+
+    return entities
+
+
+def extract_occupation_entities(
+    text: str,
+    sections: list[TextSection],
+) -> list[ExtractedEntity]:
+    taxonomy = load_esco_taxonomy()
+    folded_text = fold_for_search(text)
+    entities: list[ExtractedEntity] = []
+    seen_uris: set[str] = set()
+
+    for concept in sorted(
+        taxonomy.occupations,
+        key=lambda item: max(len(alias) for alias in item.aliases),
+        reverse=True,
+    ):
+        for alias in sorted(concept.aliases, key=len, reverse=True):
+            pattern = SKILL_BOUNDARY.format(re.escape(fold_for_search(alias)))
+            match = re.search(pattern, folded_text)
+            if match is None or concept.uri in seen_uris:
+                continue
+
+            seen_uris.add(concept.uri)
+            entities.append(
+                build_entity(
+                    text=text,
+                    label="occupation",
+                    raw_text=text[match.start() : match.end()],
+                    normalized=concept.preferred_label,
+                    start=match.start(),
+                    end=match.end(),
+                    section=section_for_offset(sections, match.start()),
+                    confidence=0.82,
+                    aliases=occupation_aliases_for_match(concept, alias),
+                    esco_metadata=esco_metadata_for_concept(concept),
+                )
+            )
+            break
 
     return entities
 
@@ -471,7 +516,9 @@ def build_entity(
     section: str,
     confidence: float,
     aliases: list[str] | None = None,
+    esco_metadata: dict[str, str | None] | None = None,
 ) -> ExtractedEntity:
+    metadata = esco_metadata or {}
     return ExtractedEntity(
         text=raw_text,
         label=label,
@@ -483,7 +530,28 @@ def build_entity(
         section=section,
         evidence=evidence_for_span(text, start, end),
         aliases=aliases or [],
+        esco_uri=metadata.get("esco_uri"),
+        esco_preferred_label=metadata.get("esco_preferred_label"),
+        esco_type=metadata.get("esco_type"),
+        isco_group=metadata.get("isco_group"),
     )
+
+
+def esco_metadata_for_concept(concept: EscoConcept) -> dict[str, str | None]:
+    return {
+        "esco_uri": concept.uri,
+        "esco_preferred_label": concept.preferred_label,
+        "esco_type": concept.concept_type,
+        "isco_group": concept.isco_group,
+    }
+
+
+def occupation_aliases_for_match(concept: EscoConcept, matched_alias: str) -> list[str]:
+    normalized_preferred = skill_key(concept.preferred_label)
+    normalized_alias = skill_key(matched_alias)
+    if normalized_alias == normalized_preferred:
+        return []
+    return [matched_alias]
 
 
 def sort_and_dedupe_entities(entities: Iterable[ExtractedEntity]) -> list[ExtractedEntity]:

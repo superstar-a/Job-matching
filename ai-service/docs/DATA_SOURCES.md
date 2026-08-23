@@ -24,6 +24,9 @@ is manually provided for this project.
 - Use `manual_sample` records for tests and demos until a source is approved.
 - Use fictional company names for generated samples.
 - Keep `source_url` unique and traceable, even for sample records.
+- Chat assistant MVP may route `job_sources` intent to existing normalized/sample
+  jobs first; job boards remain P1 research targets until approval/API/manual
+  export is available.
 - Store only normalized JSON in git; avoid committing raw scraped HTML from real sites.
 - For company career pages, review and record robots/terms before adding URLs.
 - Use `AI_CRAWL_DELAY_SECONDS >= 1` and keep batch concurrency low.
@@ -44,3 +47,13 @@ is manually provided for this project.
 For MVP, Step 2 uses P0 manual/sample JDs and permissioned company career
 pages only. Job boards remain P1 research targets until the team confirms
 legal/product approval. LinkedIn remains P2 and is blocked by the scraper.
+
+## Taxonomy Reference Sources
+
+| Source | Purpose | Version policy | Notes |
+| --- | --- | --- | --- |
+| ESCO API / CSV | Normalize occupations and skills to stable `data.europa.eu/esco/...` URIs | Pin API calls/imports with `selectedVersion=v1.2.0` until the team schedules a dataset upgrade | Current repo includes only a small verified seed in `data/taxonomy/esco_seed.json`. Full ESCO import is still pending. |
+
+ESCO is a reference taxonomy, not a JD source. Use it to normalize extracted
+skill and occupation concepts, then keep local Vietnamese/English aliases for
+terms ESCO does not cover directly or for market-specific phrasing.

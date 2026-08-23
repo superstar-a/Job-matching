@@ -76,6 +76,7 @@ def recommend_jobs(cv: CVProfile, jobs: Iterable[JobDescription]) -> list[Recomm
                 overall_score=result.overall_score,
                 matched_skills=result.matched_skills,
                 missing_required_skills=result.missing_required_skills,
+                recommendation_reason=result.recommendation_reason,
             )
         )
 

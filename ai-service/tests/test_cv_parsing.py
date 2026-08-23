@@ -77,6 +77,34 @@ def test_entity_extraction_returns_normalized_entities_with_sections():
     assert all(entity.end_char is not None for entity in entities)
     assert all(entity.source_span for entity in entities)
 
+    python_entity = next(
+        entity
+        for entity in entities
+        if entity.label == "skill" and entity.normalized == "Python"
+    )
+    assert (
+        python_entity.esco_uri
+        == "http://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d"
+    )
+    assert python_entity.esco_preferred_label == "Python (computer programming)"
+    assert python_entity.esco_type == "skill"
+
+
+def test_entity_extraction_returns_esco_occupation_metadata():
+    text = "We are hiring a Data Engineer to build SQL pipelines."
+
+    response = extract_entities_from_text(text, document_type="jd")
+    occupation = next(entity for entity in response.entities if entity.label == "occupation")
+
+    assert occupation.normalized == "data engineer"
+    assert (
+        occupation.esco_uri
+        == "http://data.europa.eu/esco/occupation/2079755f-d809-49e6-8037-4de6180e54c0"
+    )
+    assert occupation.esco_preferred_label == "data engineer"
+    assert occupation.esco_type == "occupation"
+    assert occupation.isco_group == "2511"
+
 
 def test_parse_cv_endpoint_accepts_text_and_masks_pii():
     payload = {

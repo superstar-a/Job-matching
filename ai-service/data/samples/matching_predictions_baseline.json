@@ -1,0 +1,27 @@
+[
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-001",
+    "score": 82.5
+  },
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-003",
+    "score": 62.0
+  },
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-005",
+    "score": 55.0
+  },
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-002",
+    "score": 25.0
+  },
+  {
+    "cv_id": "cv-backend-sample",
+    "job_id": "manual-jd-011",
+    "score": 18.0
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "sample_id": "intent-001",
+    "message": "Tim job TopCV luong tu 20tr o HCM cho Python backend remote",
+    "intent_label": "job_search",
+    "expected_intent": {
+      "target_role": "Python Backend",
+      "required_skills": ["Python"],
+      "job_sources": ["topcv"],
+      "location": "ho chi minh",
+      "work_mode": "remote",
+      "salary_min": 20000000,
+      "currency": "VND",
+      "required_filters": ["job_sources", "salary_min", "location", "work_mode"]
+    }
+  },
+  {
+    "sample_id": "intent-002",
+    "message": "Loc them ITviec cong ty product cho Data Engineer senior hybrid o Ha Noi",
+    "intent_label": "job_search",
+    "expected_intent": {
+      "target_role": "Data Engineer",
+      "job_sources": ["itviec"],
+      "location": "ha noi",
+      "work_mode": "hybrid",
+      "level": "senior",
+      "company_type": "product",
+      "required_filters": ["job_sources", "company_type", "level", "work_mode", "location"]
+    }
+  },
+  {
+    "sample_id": "intent-003",
+    "message": "Tim VietnamWorks SQL Server DBA onsite luong toi thieu 1500 USD",
+    "intent_label": "job_search",
+    "expected_intent": {
+      "target_role": "Database Administrator",
+      "required_skills": ["SQL Server"],
+      "job_sources": ["vietnamworks"],
+      "work_mode": "onsite",
+      "salary_min": 1500,
+      "currency": "USD",
+      "required_filters": ["job_sources", "work_mode", "salary_min"]
+    }
+  },
+  {
+    "sample_id": "intent-004",
+    "message": "Co job AI Engineer remote junior dung PyTorch NLP khong",
+    "intent_label": "job_search",
+    "expected_intent": {
+      "target_role": "AI Engineer",
+      "required_skills": ["PyTorch", "NLP"],
+      "work_mode": "remote",
+      "level": "junior",
+      "required_filters": ["work_mode", "level"]
+    }
+  },
+  {
+    "sample_id": "intent-005",
+    "message": "So CV nay voi JD toi upload va goi y sua CV",
+    "intent_label": "job_fit_analysis",
+    "expected_intent": {
+      "job_sources": ["uploaded_jd"],
+      "analysis_mode": "cv_job_fit",
+      "needs_cv_suggestions": true
+    }
+  },
+  {
+    "sample_id": "intent-006",
+    "message": "Tim TopCV hoac ITviec cho Node.js NestJS backend o Da Nang hybrid",
+    "intent_label": "job_search",
+    "expected_intent": {
+      "target_role": "Node.js Backend",
+      "required_skills": ["Node.js", "NestJS"],
+      "job_sources": ["topcv", "itviec"],
+      "location": "da nang",
+      "work_mode": "hybrid",
+      "required_filters": ["job_sources", "location", "work_mode"]
+    }
+  }
+]

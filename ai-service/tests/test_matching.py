@@ -84,6 +84,7 @@ def test_recommend_jobs_ranks_best_matching_job_first():
     assert [item.job_id for item in recommendations[:2]] == ["manual-jd-001", "manual-jd-003"]
     assert recommendations[0].overall_score >= recommendations[1].overall_score
     assert "Python" in recommendations[0].matched_skills
+    assert recommendations[0].recommendation_reason
     assert recommendations[-1].overall_score <= recommendations[0].overall_score
 
 
@@ -119,6 +120,7 @@ def test_recommend_jobs_endpoint_returns_ranked_jobs():
     assert [item["job_id"] for item in body[:2]] == ["manual-jd-001", "manual-jd-003"]
     assert body[0]["overall_score"] >= body[1]["overall_score"]
     assert body[0]["missing_required_skills"]
+    assert body[0]["recommendation_reason"]
 
 
 def test_matching_evaluation_set_has_labeled_cv_job_pairs():

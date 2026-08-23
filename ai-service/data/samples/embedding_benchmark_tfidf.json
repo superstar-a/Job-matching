@@ -1,0 +1,45 @@
+{
+  "benchmark_name": "ai-service-embedding-benchmark",
+  "dataset_size": 5,
+  "k": 3,
+  "results": [
+    {
+      "model_name": "tfidf-baseline",
+      "status": "completed",
+      "ranking": {
+        "k": 3,
+        "metrics_by_cv": {
+          "cv-backend-sample": {
+            "precision_at_k": 0.6666666666666666,
+            "recall_at_k": 0.6666666666666666,
+            "ndcg_at_k": 0.8556691603792903,
+            "relevant_count": 3,
+            "retrieved_count": 3,
+            "labeled_count": 5
+          }
+        },
+        "macro_precision_at_k": 0.6666666666666666,
+        "macro_recall_at_k": 0.6666666666666666,
+        "macro_ndcg_at_k": 0.8556691603792903
+      },
+      "score_range_violation_count": 3,
+      "latency_ms": 1565.433,
+      "model_load_ms": 0.0,
+      "prediction_count": 5,
+      "metadata": {
+        "provider": "sklearn",
+        "model_type": "tfidf"
+      },
+      "error": null
+    }
+  ],
+  "metadata": {
+    "created_at_utc": "2026-08-23T03:26:15.850376+00:00",
+    "python_version": "3.10.11",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "registry_path": "D:\\studies\\AWS\\Job-matching\\ai-service\\data\\model_registry\\embedding_models.json",
+    "labels_path": "D:\\studies\\AWS\\Job-matching\\ai-service\\data\\samples\\matching_evaluation.json",
+    "cv_id": "cv-backend-sample",
+    "jobs_path": "D:\\studies\\AWS\\Job-matching\\ai-service\\data\\samples\\jd_samples_20.json"
+  }
+}
