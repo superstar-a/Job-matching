@@ -84,6 +84,22 @@ Tài liệu hướng dẫn chi tiết từng bước dành cho các thành viên
 
 ---
 
-## 📝 5. Đóng Góp & Giấy Phép (License)
+## 🔄 5. CI/CD Pipeline (GitHub Actions)
+
+Dự án đã được tích hợp luồng tự động hóa CI/CD thông qua **GitHub Actions**:
+
+- 🧪 **CI Workflow (`.github/workflows/ci.yml`)**:
+  - Tự động kiểm tra Typecheck & Build cho **Frontend (Vite + React)**.
+  - Tự động Lint, Jest Unit Test, Prisma Client Generation & Build cho **Backend (NestJS)**.
+  - Kiểm tra cú pháp Python & Dependencies cho **AI Service (FastAPI)**.
+  - Build thử nghiệm các Docker Images để đảm bảo tính sẵn sàng của Container.
+
+- 🚀 **CD Workflow (`.github/workflows/cd.yml`)**:
+  - Tự động đống gói và đẩy (Push) Docker Images lên **GitHub Container Registry (GHCR)** khi code được merge vào nhánh `main`.
+  - Tự động kết nối SSH triển khai lại hệ thống trên VPS Server.
+
+---
+
+## 📝 6. Đóng Góp & Giấy Phép (License)
 
 Dự án thuộc đề tài nghiên cứu và phát triển **Hệ thống Phân tích & Gợi ý Việc làm Thông minh**. Tất cả mã nguồn được đóng gói chuẩn Monorepo Microservices.
